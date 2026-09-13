@@ -1,6 +1,6 @@
 /* The built page in a browser: it boots, both activities play, the parent gate
    works, levels reset on every launch, and the tablet lockdown behaves. */
-const { bootApp, Runner } = require("./_harness");
+const { bootApp, Runner, registeredActivities } = require("./_harness");
 const R = new Runner("app");
 const check = (c, m) => R.check(c, m);
 
@@ -19,7 +19,8 @@ const back = () => window.dispatchEvent(new window.PopStateEvent("popstate", { s
 setTimeout(() => {
   // ---- boot ----
   check($("#home").classList.contains("on"), "boots to the home screen");
-  check(doc.querySelectorAll(".card").length === 2, "both activities have a home card");
+  check(doc.querySelectorAll(".card").length === registeredActivities().length,
+    "every registered activity has a home card");
 
   // ---- every launch starts at level 1, whatever was saved ----
   check(/Level 1\//.test($("#lv-pattern").textContent), "Patterns starts at level 1 despite level 12 being saved");

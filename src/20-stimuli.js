@@ -3,6 +3,7 @@
    renderers that turn an item into a DOM node. Activities build rounds out
    of these so everything on screen looks like one app.
    item = {k:'shape',shape,color,size} | {k:'em',ch,theme?} | {k:'text',text,color}
+        | {k:'bar',color,scale}
    ================================================================ */
 const COLORS = {
   red:"#e8384f", yellow:"#ffc400", green:"#2e9e44", blue:"#2f6fed", purple:"#8338ec"
@@ -32,7 +33,12 @@ const THEME_KEYS = Object.keys(THEMES);
 const MIXED_THEMES = ["animals","fruits","vehicles","weather"];
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const DIGITS = "123456789".split("");
-function sizeScaleOf(size){ return size==="small" ? 0.55 : (size==="medium" ? 0.78 : 1); }
+/* Sorting uses three named sizes; Order needs a finer grain than three, so a
+   plain number is also accepted and used as the scale directly. */
+function sizeScaleOf(size){
+  if(typeof size === "number") return size;
+  return size==="small" ? 0.55 : (size==="medium" ? 0.78 : 1);
+}
 
 /* box tints — colour-sort bins use the real colour being tested; the rest get a
    fixed, arbitrary tint so the box itself is easy to spot without hinting at the
@@ -70,18 +76,30 @@ function shapeSVG(shape, color, scale){
   return `<svg viewBox="0 0 ${s} ${s}" width="100%" height="100%"><polygon points="${pts.join(" ")}" fill="${c}"/></svg>`;
 }
 
-/* item = {k:'shape',shape,color,size} | {k:'em',ch,theme?} | {k:'text',text,color} */
+/* A bar: fixed width, height proportional to scale, standing on a common
+   baseline. Ordering by length is a cleaner judgement than ordering by area —
+   one dimension instead of two — and a row of them reads as a staircase. */
+function barSVG(color, scale){
+  const c = COLORS[color] || color;
+  const w = 40, h = Math.max(6, 86*scale), x = 50 - w/2, y = 95 - h;
+  return `<svg viewBox="0 0 100 100" width="100%" height="100%"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="7" fill="${c}"/></svg>`;
+}
+
+/* item = {k:'shape',shape,color,size} | {k:'em',ch,theme?} | {k:'text',text,color}
+        | {k:'bar',color,scale} */
 function itemKey(it){
   if(it.k==="em") return "em:"+it.ch;
   if(it.k==="text") return "tx:"+it.text;
+  if(it.k==="bar") return "bar:"+it.color+":"+it.scale;
   return ["sh",it.shape,it.color,it.size||"big"].join(":");
 }
 function itemNode(it, px){
-  const cls = it.k==="em" ? " emoji" : (it.k==="text" ? " texttile" : "");
+  const cls = it.k==="em" ? " emoji" : (it.k==="text" ? " texttile" : (it.k==="bar" ? " bar" : ""));
   const d = el("div","tile"+cls);
   if(px) d.style.setProperty("--t", px+"px");
   if(it.k==="em") d.textContent = it.ch;
   else if(it.k==="text"){ d.textContent = it.text; d.style.color = it.color; }
+  else if(it.k==="bar") d.innerHTML = barSVG(it.color, it.scale);
   else d.innerHTML = shapeSVG(it.shape, it.color, sizeScaleOf(it.size));
   d._item = it;
   return d;

@@ -113,6 +113,16 @@
 
   .tray{display:flex;gap:clamp(8px,2.5vw,20px);justify-content:center;flex-wrap:wrap;min-height:86px;align-items:center;margin-top:clamp(16px,5vh,40px)}
 
+  /* ---------- ORDER (the size staircase) ---------- */
+  .seq.steps{align-items:flex-end;gap:clamp(3px,.8vw,8px)}
+  /* Bars standing in the staircase lose their card: with one white box per bar
+     the eye compares each bar to its own box instead of to its neighbours, and
+     the row stops reading as a staircase. In the tray they keep the card, which
+     is what makes them look like pieces you can pick up. */
+  .steps .tile.bar{background:none;box-shadow:none}
+  /* the guide silhouette is a size cue, not a piece — no card, no shadow */
+  .slot .ghost{background:none;box-shadow:none;opacity:.5}
+
   /* drag layer */
   #draglayer{position:fixed;inset:0;pointer-events:none;z-index:60}
   #draglayer .tile{position:absolute;transform:translate(-50%,-50%) scale(1.18);box-shadow:0 14px 30px rgba(36,48,68,.28)}

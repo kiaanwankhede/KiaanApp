@@ -7,8 +7,9 @@
  * fifty has stopped being cheap. */
 const fs = require("fs");
 const path = require("path");
-const { bootApp, Runner } = require("./_harness");
+const { bootApp, Runner, registeredActivities } = require("./_harness");
 const build = require("../tools/build");
+const REGISTERED = registeredActivities().length;
 
 const R = new Runner("contract");
 const check = (c, m) => R.check(c, m);
@@ -53,9 +54,11 @@ fs.writeFileSync(tmp, FAKE);
 let html;
 try {
   build.ACTIVITY_FILES.push("activities/__contract_fake.js");
+  // append to whatever the registry currently lists, so this keeps working as
+  // activities are added rather than needing an edit each time
   html = build.buildBody().replace(
-    "const ACTIVITIES = [ PATTERNS, SORTING ];",
-    "const ACTIVITIES = [ PATTERNS, SORTING, FAKE_ACTIVITY ];"
+    /const ACTIVITIES\s*=\s*\[([^\]]*)\];/,
+    "const ACTIVITIES = [$1, FAKE_ACTIVITY ];"
   );
 } finally {
   fs.unlinkSync(tmp);
@@ -68,7 +71,8 @@ const click = (el) => el.dispatchEvent(new window.Event("click", { bubbles: true
 
 setTimeout(() => {
   // a home card, with no markup written for it
-  check(doc.querySelectorAll(".card").length === 3, "a third home card appears purely from the registry");
+  check(doc.querySelectorAll(".card").length === REGISTERED + 1,
+    "one more home card appears purely from the registry");
   check(!!$("#card-fake"), "the new activity gets its own card");
   check(/MEMORY/.test($("#card-fake").textContent), "the card shows the activity's name");
   check(/2 to choose from/.test($("#lv-fake").textContent), "the card shows the activity's own level label");

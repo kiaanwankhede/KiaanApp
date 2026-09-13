@@ -37,6 +37,17 @@ function pureContext(files, exportNames) {
   return vm.runInContext(code, ctx, { filename: files.join(" + ") });
 }
 
+/**
+ * How many activities the registry lists. Derived rather than hard-coded so
+ * that adding an activity stays the three one-line changes CLAUDE.md promises
+ * — a test that needs editing too would make that claim false.
+ */
+function registeredActivities() {
+  const src = fs.readFileSync(path.join(SRC, "60-registry.js"), "utf8");
+  const inside = src.match(/const ACTIVITIES\s*=\s*\[([^\]]*)\]/)[1];
+  return inside.split(",").map((s) => s.trim()).filter(Boolean);
+}
+
 function FakeReq() { this.onsuccess = null; this.onerror = null; this.onupgradeneeded = null; }
 function fakeStore() {
   return {
@@ -114,4 +125,4 @@ class Runner {
   }
 }
 
-module.exports = { pureContext, bootApp, Runner, ROOT, SRC };
+module.exports = { pureContext, bootApp, Runner, ROOT, SRC, registeredActivities };

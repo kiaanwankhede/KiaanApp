@@ -38,6 +38,7 @@ const SHELL_BEFORE = [
 const ACTIVITY_FILES = [
   "activities/patterns.js",
   "activities/sorting.js",
+  "activities/seriate.js",
 ];
 
 const SHELL_AFTER = [

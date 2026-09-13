@@ -1,8 +1,8 @@
 # Think & Sort
 
-A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Two
-activities so far — Patterns and Sorting — built as **one offline HTML file**
-that runs from a tablet with no network, no install and no dependencies.
+A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Three
+activities so far — Patterns, Sorting and Order — built as **one offline HTML
+file** that runs from a tablet with no network, no install and no dependencies.
 
 ```
 npm install     # jsdom, for the tests
@@ -42,6 +42,7 @@ src/
   activities/
     patterns.js    "what comes next?"  — 40 levels
     sorting.js     "put each where it belongs" — 18 levels
+    seriate.js     "finish the steps" — size ordering, 20 levels
   60-registry.js   the list of activities. Adding one is a line here.
   70-home.js       home screen, generated from the registry
   75-gate.js       passcode gate for Settings
@@ -106,6 +107,20 @@ no star or moon in it. Keep that bar for any new category.
 from a whole theme every occurrence put seven different pictures on screen and
 buried the pattern. Two exemplars still forces category recognition — the
 answer can be the one that hasn't appeared — while leaving the beat visible.
+
+**Order's staircase is always five wide.** What changes with level is how many
+pieces are missing — one, then two, up to all five — never the width. The
+screen therefore looks the same at every level, which matters more than the
+tidiness of growing 3 → 4 → 5 would have. With four of five already standing,
+the ordering rule is visible on screen and can be read off the gradient; the
+support fades by removing pieces, not by changing the layout.
+
+**And the hole moves around.** If it were always the big end, "put the fattest
+one on the right" would score full marks without any ordering at all. A hole in
+the *middle* is the real target: that piece has to be bigger than its left
+neighbour and smaller than its right one at the same time. Bars come before
+scaled shapes for the same kind of reason — comparing length is one dimension,
+comparing area is two.
 
 **Mastery: 80% independent across two consecutive blocks moves up; under 50%
 in one block moves down.** "Independent" means no hint and no prior miss that
