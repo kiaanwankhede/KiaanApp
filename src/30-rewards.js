@@ -1,0 +1,113 @@
+/* ============================ REWARDS ============================
+   The reward picture + spelling shown every few correct rounds, the shuffle
+   bag that stops repeats, and the IndexedDB store of photos added from the
+   tablet. Shared by every activity via the session loop.
+   ================================================================ */
+const REWARD_ANIMALS = [
+  ["DOG","🐶"],["CAT","🐱"],["COW","🐮"],["LION","🦁"],["TIGER","🐯"],["ELEPHANT","🐘"],
+  ["MONKEY","🐵"],["ZEBRA","🦓"],["GIRAFFE","🦒"],["HORSE","🐴"],["PIG","🐷"],["SHEEP","🐑"],
+  ["RABBIT","🐰"],["BEAR","🐻"],["PANDA","🐼"],["FOX","🦊"],["FROG","🐸"],["FISH","🐠"],
+  ["DUCK","🦆"],["OWL","🦉"],["PENGUIN","🐧"],["PARROT","🦜"],["SNAKE","🐍"],["TURTLE","🐢"],
+  ["CRAB","🦀"],["OCTOPUS","🐙"],["BUTTERFLY","🦋"],["BEE","🐝"],["WHALE","🐳"],["DOLPHIN","🐬"],
+  ["CAMEL","🐫"],["DEER","🦌"],["GOAT","🐐"],["HEN","🐔"],["SNAIL","🐌"],["KOALA","🐨"],
+  ["WOLF","🐺"],["HIPPO","🦛"],["RHINO","🦏"],["PEACOCK","🦚"]
+];
+const REWARD_FRUITS = [
+  ["APPLE","🍎"],["BANANA","🍌"],["GRAPES","🍇"],["ORANGE","🍊"],["STRAWBERRY","🍓"],
+  ["WATERMELON","🍉"],["PINEAPPLE","🍍"],["KIWI","🥝"],["MANGO","🥭"],["PEACH","🍑"],
+  ["CHERRY","🍒"],["LEMON","🍋"],["COCONUT","🥥"],["PEAR","🍐"]
+];
+const REWARD_VEHICLES = [
+  ["CAR","🚗"],["BUS","🚌"],["BICYCLE","🚲"],["TRAIN","🚂"],["TAXI","🚕"],["TRUCK","🚚"],
+  ["AIRPLANE","✈️"],["HELICOPTER","🚁"],["BOAT","⛵"],["SHIP","🚢"],["SCOOTER","🛵"],
+  ["TRACTOR","🚜"],["AMBULANCE","🚑"]
+];
+const REWARD_HOUSE = [
+  ["CHAIR","🪑"],["BED","🛏️"],["SOFA","🛋️"],["DOOR","🚪"],["WINDOW","🪟"],["LAMP","💡"],
+  ["CLOCK","🕰️"],["TV","📺"],["MIRROR","🪞"],["BATHTUB","🛁"],["BASKET","🧺"],["KEY","🔑"]
+];
+const EMOJI_PACK = [...REWARD_ANIMALS, ...REWARD_FRUITS, ...REWARD_VEHICLES, ...REWARD_HOUSE];
+
+/* tiny IndexedDB for photos added from the tablet */
+const DB_NAME="lrapp", STORE="animals";
+function idb(){
+  return new Promise((res,rej)=>{
+    const r = indexedDB.open(DB_NAME,1);
+    r.onupgradeneeded = ()=>{ r.result.createObjectStore(STORE,{keyPath:"id",autoIncrement:true}); };
+    r.onsuccess = ()=>res(r.result);
+    r.onerror = ()=>rej(r.error);
+  });
+}
+async function dbAll(){
+  try{
+    const db = await idb();
+    return await new Promise((res,rej)=>{
+      const tx = db.transaction(STORE,"readonly").objectStore(STORE).getAll();
+      tx.onsuccess=()=>res(tx.result||[]); tx.onerror=()=>rej(tx.error);
+    });
+  }catch(e){ return []; }
+}
+async function dbAdd(rec){
+  const db = await idb();
+  return new Promise((res,rej)=>{
+    const tx = db.transaction(STORE,"readwrite").objectStore(STORE).add(rec);
+    tx.onsuccess=()=>res(tx.result); tx.onerror=()=>rej(tx.error);
+  });
+}
+async function dbDel(id){
+  const db = await idb();
+  return new Promise((res,rej)=>{
+    const tx = db.transaction(STORE,"readwrite").objectStore(STORE).delete(id);
+    tx.onsuccess=()=>res(); tx.onerror=()=>rej(tx.error);
+  });
+}
+function wordFromFile(name){
+  return name.replace(/\.[^.]+$/,"").replace(/[_\-]+/g," ").replace(/\d+/g,"")
+             .trim().toUpperCase().slice(0,18) || "ANIMAL";
+}
+let CUSTOM = [];           // [{id, word, url}]
+async function loadCustom(){
+  const recs = await dbAll();
+  CUSTOM.forEach(c=>{ try{URL.revokeObjectURL(c.url);}catch(e){} });
+  CUSTOM = recs.map(r=>({id:r.id, word:r.word, url:URL.createObjectURL(r.blob)}));
+}
+
+/* shuffle bag so the same animal doesn't repeat */
+let bag = [];
+function nextAnimal(){
+  if(!bag.length){
+    const pool = [];
+    CUSTOM.forEach(c=>pool.push({type:"img", word:c.word, url:c.url}));
+    if(S.useEmojiPack || !CUSTOM.length) EMOJI_PACK.forEach(p=>pool.push({type:"em", word:p[0], em:p[1]}));
+    if(!pool.length) pool.push({type:"em", word:"STAR", em:"⭐"});
+    for(let i=pool.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [pool[i],pool[j]]=[pool[j],pool[i]]; }
+    bag = pool;
+  }
+  return bag.pop();
+}
+
+let rewardTimer = null;
+function showReward(){
+  const a = nextAnimal();
+  sess.sinceReward = 0;
+  sess.target = rewardTarget();
+  const img = $("#rwImg"); img.innerHTML = "";
+  if(a.type === "img"){ const i = el("img"); i.src = a.url; img.appendChild(i); }
+  else { img.appendChild(el("div","em", a.em)); }
+  const w = $("#rwWord"); w.innerHTML = "";
+  a.word.split("").forEach((ch,i)=>{
+    const s = el("span", null, ch === " " ? "&nbsp;" : ch);
+    w.appendChild(s);
+    setTimeout(()=>s.classList.add("in"), 220 + i*170);
+  });
+  show("#reward");
+  clearTimeout(rewardTimer);
+  rewardTimer = setTimeout(continueFromReward, 5000); // shows for 5s, then carries straight on — no tap needed
+}
+function continueFromReward(){
+  clearTimeout(rewardTimer); rewardTimer = null;
+  show("#play");
+  renderTokens();
+  if(!sess.roundDone) return;                       // resume a half-finished sorting round
+  nextRound();
+}

@@ -1,0 +1,102 @@
+/* ============================ SESSION ============================
+   Owns the play loop, and with it everything an activity would otherwise
+   have to reimplement: the reward schedule and token strip, the assisted
+   hand-hint, independence tracking, mastery/auto-advance, and moving on to
+   the next round.
+
+   THE ACTIVITY CONTRACT
+   ---------------------
+   An activity is a plain object:
+
+     {
+       id:        "pattern",               // stable; also the progress key
+       name:      "PATTERNS",              // home card title
+       icon:      "🔷🔶🔷",                 // home card icon
+       maxLevel:  () => 40,                // how tall its ladder is
+       levelLabel:(level) => "AB · Colour", // home card subtitle
+       settingsHint:(level) => "…",        // blurb under its Settings stepper
+       startRound:(level, api) => { … }    // draw one round into api.stage
+     }
+
+   startRound gets an `api` and is responsible for nothing but this round:
+
+     api.stage        the (already emptied) #stage element to draw into
+     api.level        the level being played
+     api.attempts()   consecutive wrong tries on whatever he's working on now
+     api.refocus()    he's switched to a different piece; restart prompting
+     api.miss()       record a wrong try — returns the new attempt count
+     api.hint(el)     point the assisted-mode hand at el
+     api.solved(tag)  this round is complete and correct
+
+   The shell works out on its own whether the round was INDEPENDENT (no wrong
+   tries, no hint shown) and only independent rounds count toward moving up,
+   so no activity can accidentally get that wrong or forget to do it.
+   ================================================================ */
+let sess = null;
+
+function activityById(id){ return ACTIVITIES.find(a => a.id === id) || ACTIVITIES[0]; }
+
+function startSession(id){
+  sess = {
+    kind: id, correct:0, misses:0, prompts:0, started:Date.now(),
+    sinceReward:0, target:rewardTarget(), attempts:0, clean:0, asked:0
+  };
+  show("#play");
+  renderTokens();
+  nextRound();
+}
+function rewardTarget(){
+  const n = S.rewardEvery;
+  if(S.schedule === "fixed") return n;
+  const lo = Math.max(1, n-1), hi = n+1;
+  return lo + rnd(hi-lo+1);
+}
+function renderTokens(){
+  const t = $("#tokens"); t.innerHTML = "";
+  for(let i=0;i<sess.target;i++){
+    const d = el("div","tok"+(i<sess.sinceReward?" full":""));
+    t.appendChild(d);
+  }
+}
+function scoreCorrect(){
+  sess.correct++; sess.sinceReward++;
+  const toks = $("#tokens").children;
+  const t = toks[sess.sinceReward-1];
+  if(t){ t.classList.add("full","pop"); setTimeout(()=>t.classList.remove("pop"),260); }
+}
+function afterCorrect(){
+  // Play never auto-stops — he keeps going until a parent taps back.
+  if(sess.sinceReward >= sess.target){ setTimeout(showReward, 500); return; }
+  setTimeout(nextRound, 550);
+}
+function nextRound(){
+  sess.roundDone = false; sess.roundMisses = 0;
+  sess.attempts = 0; sess.asked++; sess.hintShownThisRound = false;
+  const act = activityById(sess.kind);
+  const stage = $("#stage"); stage.innerHTML = "";
+  act.startRound(levelOf(act.id), roundApi(act, stage));
+}
+function roundApi(act, stage){
+  return {
+    stage,
+    level: levelOf(act.id),
+    attempts(){ return sess.attempts; },
+    refocus(){ sess.attempts = 0; },
+    hint(target){ showHint(target); },
+    miss(){
+      sess.misses++; sess.attempts++; sess.roundMisses++;
+      if(sess.attempts >= S.dimAfter) sess.prompts++;
+      return sess.attempts;
+    },
+    solved(tag){
+      if(sess.roundDone) return;
+      const independent = (sess.roundMisses === 0 && !sess.hintShownThisRound);
+      if(independent) sess.clean++;
+      sess.roundDone = true;
+      if(tag) logTagStat(act.id, tag, independent);
+      scoreCorrect();
+      evaluateMastery(act.id, independent);
+      afterCorrect();
+    }
+  };
+}

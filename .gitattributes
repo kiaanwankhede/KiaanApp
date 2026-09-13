@@ -1,0 +1,6 @@
+# The service worker's cache name is a hash of the built page, so the working
+# tree has to produce identical bytes on every machine — otherwise a Windows
+# checkout and CI would disagree and bust the tablet's cache for no reason.
+* text=auto eol=lf
+
+*.png binary

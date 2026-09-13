@@ -1,0 +1,15 @@
+{
+  "name": "think-and-sort",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Reward-based logical reasoning practice — patterns and sorting — for a 4-year-old, as one offline HTML file.",
+  "scripts": {
+    "build": "node tools/build.js",
+    "test": "node tests/run.js",
+    "icons": "node tools/make-icons.js",
+    "serve": "node tools/serve.js"
+  },
+  "devDependencies": {
+    "jsdom": "^26.0.0"
+  }
+}

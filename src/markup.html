@@ -1,0 +1,62 @@
+<div id="app">
+
+  <!-- HOME -->
+  <section id="home" class="screen on">
+    <h1 class="app-title">Think &amp; Sort</h1>
+    <p class="app-sub">Pick something to do</p>
+    <!-- activity cards are generated from the registry in 70-home.js -->
+    <div class="cards"></div>
+    <div class="homerow">
+      <label>Assisted mode</label>
+      <div id="assistToggleHome"></div>
+    </div>
+    <button id="gear">⚙️</button>
+  </section>
+
+  <!-- PLAY -->
+  <section id="play" class="screen">
+    <div class="topbar">
+      <button id="back">←</button>
+      <div id="tokens"></div>
+      <div style="width:44px;flex:none"></div>
+    </div>
+    <div id="stage"></div>
+  </section>
+
+  <!-- REWARD -->
+  <section id="reward" class="screen">
+    <div id="rwImg"></div>
+    <div id="rwWord"></div>
+  </section>
+
+  <!-- DONE -->
+  <section id="done" class="screen">
+    <div class="em">🌟</div>
+    <div class="big">All done!</div>
+    <div style="color:var(--ink-soft)" id="doneLine"></div>
+    <button class="bigbtn" id="doneHome">HOME</button>
+  </section>
+
+  <!-- GATE -->
+  <section id="gate" class="screen">
+    <div class="pad">
+      <div style="font-size:14px;color:var(--ink-soft);letter-spacing:1px">GROWN-UPS ONLY</div>
+      <div class="dots" id="gateDots"></div>
+      <div class="keys" id="gateKeys"></div>
+    </div>
+    <button class="bigbtn ghost" id="gateCancel">CANCEL</button>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="settings" class="screen">
+    <div class="sbar">
+      <button id="setBack" style="font-size:22px;width:38px">←</button>
+      <h2>Settings</h2>
+      <button class="minibtn" id="fullBtn">Fullscreen</button>
+    </div>
+    <div class="sbody" id="setBody"></div>
+  </section>
+
+</div>
+<div id="draglayer"></div>
+<div id="hintlayer"></div>
