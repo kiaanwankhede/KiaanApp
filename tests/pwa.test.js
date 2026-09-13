@@ -30,7 +30,10 @@ check(/controllerchange/.test(index), "index.html reloads once a new SW takes co
 
 /* ---- manifest.webmanifest ---- */
 const manifest = JSON.parse(readDist("manifest.webmanifest"));
-check(manifest.name === "Think & Sort", "manifest has the app name");
+check(manifest.name === "Kiaan's App", "manifest has the app name");
+// the offline file inlines the same identity, generated from the same object
+check(offline.includes(encodeURIComponent(JSON.stringify({ name: manifest.name }).slice(1, -1))),
+  "the offline file's inlined manifest carries the same name, so a rename can't half-apply");
 check(manifest.start_url === "." && manifest.scope === ".", "manifest uses relative start_url/scope (subpath-safe hosting)");
 check(Array.isArray(manifest.icons) && manifest.icons.length === 3, "manifest lists all three icons");
 check(manifest.icons.some((i) => i.purpose === "maskable"), "manifest includes a maskable icon for Android's adaptive icon shape");

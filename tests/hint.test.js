@@ -51,7 +51,29 @@ setTimeout(() => {
       check(hand() ? hand().style.top !== "300px" : true,
         "a detached target does not drag the hand to a stale position");
 
-      R.finish(errors);
+      /* Sorting points at a bin, which is tall enough that the shell's
+         20%-of-height anchor lands on the colour dot and label rather than on
+         the drop area — it read as hovering above the bin. It must point at
+         the drop zone instead. */
+      const BIN = { left: 100, top: 200, width: 150, height: 170 };
+      const DROP = { left: 110, top: 290, width: 130, height: 70 };
+      window.Element.prototype.getBoundingClientRect = function () {
+        const r = this.classList && this.classList.contains("drop") ? DROP : BIN;
+        return { ...r, right: r.left + r.width, bottom: r.top + r.height, x: r.left, y: r.top };
+      };
+      click($("#back"));
+      setTimeout(() => {
+        click(doc.querySelector('.playbtn[data-kind="sort"]'));
+        setTimeout(() => {
+          check(!!$("#stage .bins .bin .drop"), "a sorting round draws bins with drop zones");
+          const top = hand() && parseFloat(hand().style.top);
+          check(top === DROP.top + DROP.height * 0.2,
+            "the sorting hand points into the bin's drop area, not at its label");
+          check(top > BIN.top + BIN.height * 0.2,
+            "which is lower than the bin-anchored position it used to use");
+          R.finish(errors);
+        }, 120);
+      }, 60);
     }, 60);
   }, 120);
 }, 150);

@@ -48,17 +48,46 @@ const SHELL_AFTER = [
   "90-boot.js",
 ];
 
+// The app's display name and colours, in one place. Both the offline file's
+// inlined data-URI manifest and the hosted manifest.webmanifest are generated
+// from this, so renaming the app is a one-line change and the two builds
+// cannot disagree about what it's called.
+const MANIFEST_INFO = {
+  name: "Kiaan's App",
+  short_name: "Kiaan's App",
+  display: "fullscreen",
+  orientation: "landscape",
+  background_color: "#f7f9fc",
+  theme_color: "#f7f9fc",
+  start_url: ".",
+  scope: ".",
+};
+
+// The offline file has no files to point at, so it carries no icons and no
+// scope — just the identity and colours, inlined as a data URI.
+const OFFLINE_MANIFEST =
+  "data:application/manifest+json," +
+  encodeURIComponent(JSON.stringify({
+    name: MANIFEST_INFO.name,
+    short_name: MANIFEST_INFO.short_name,
+    display: MANIFEST_INFO.display,
+    orientation: MANIFEST_INFO.orientation,
+    background_color: MANIFEST_INFO.background_color,
+    theme_color: MANIFEST_INFO.theme_color,
+    start_url: MANIFEST_INFO.start_url,
+  }));
+
 const SKELETON_HEAD = `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#f7f9fc">
+<meta name="theme-color" content="${MANIFEST_INFO.theme_color}">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Think &amp; Sort">
-<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Think%20%26%20Sort%22%2C%22short_name%22%3A%22Think%20%26%20Sort%22%2C%22display%22%3A%22fullscreen%22%2C%22orientation%22%3A%22landscape%22%2C%22background_color%22%3A%22%23f7f9fc%22%2C%22theme_color%22%3A%22%23f7f9fc%22%2C%22start_url%22%3A%22.%22%7D">
+<meta name="apple-mobile-web-app-title" content="Kiaan&rsquo;s App">
+<link rel="manifest" href="${OFFLINE_MANIFEST}">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%A7%A9%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 fill=%27%23f7f9fc%27/%3E%3Ctext y=%27.85em%27 x=%27.08em%27 font-size=%2778%27%3E%F0%9F%A7%A9%3C/text%3E%3C/svg%3E">
 <style>
@@ -81,19 +110,6 @@ const SKELETON_HEAD = `<!doctype html>
  * runs offline via a service worker — see DEPLOY.md.
  * ====================================================================== */
 
-// Same values the offline data-URI manifest above encodes, kept in one place
-// so the two builds can't drift apart.
-const MANIFEST_INFO = {
-  name: "Think & Sort",
-  short_name: "Think & Sort",
-  display: "fullscreen",
-  orientation: "landscape",
-  background_color: "#f7f9fc",
-  theme_color: "#f7f9fc",
-  start_url: ".",
-  scope: ".",
-};
-
 const HOSTED_HEAD = `<!doctype html>
 <html lang="en">
 <head>
@@ -103,7 +119,7 @@ const HOSTED_HEAD = `<!doctype html>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Think &amp; Sort">
+<meta name="apple-mobile-web-app-title" content="Kiaan&rsquo;s App">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -221,7 +237,7 @@ function buildBody() {
     .join("\n");
 
   return (
-    "<title>Think &amp; Sort</title>\n" +
+    "<title>Kiaan&rsquo;s App</title>\n" +
     "<style>\n" + read("style.css").trimEnd() + "\n</style>\n\n" +
     read("markup.html").trimEnd() + "\n\n" +
     '<script>\n(function(){\n"use strict";\n' + js + "\n\n})();\n<\/script>\n"

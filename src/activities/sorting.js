@@ -234,7 +234,10 @@ const SORTING = {
       const targetBin = binEls.find(b=>b._bin.test(r.items[0]));
       if(targetBin){
         firstWrap.classList.add("pick");
-        api.hint(targetBin);
+        // point into the empty drop area, not at the bin as a whole — a bin is
+        // tall enough that the shell's anchor lands on the colour dot and
+        // label, which reads as hovering above the bin rather than "in here"
+        api.hint(targetBin.querySelector(".drop") || targetBin);
         setTimeout(()=>firstWrap.classList.remove("pick"), 3200);
       }
     }
