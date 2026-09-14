@@ -7,11 +7,23 @@ const pick = a => a[rnd(a.length)];
 function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]];} return a; }
 function show(id){ clearHint(); document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on")); $(id).classList.add("on"); }
 
-/* ---- assisted-mode hand hint ---- */
-let hintTimer = null;
+/* ---- assisted-mode hand hint ----
+   The hand waits HINT_DELAY_MS before it appears, and that gap is his chance to
+   answer on his own. A round he answers before the hand shows up counts toward
+   moving up; once the hand has appeared the round counts neither for nor
+   against him (see solved() in 50-session.js). Touching anything before then
+   means he's started, and the hand stays away for that round.
+
+   It used to appear the instant a round began. Every round was then "prompted",
+   so with assisted mode on no round could ever count: he could never move up,
+   and a block with nothing counted read as 0% and dropped him a level even when
+   every answer was right. */
+const HINT_DELAY_MS = 3000;
+let hintTimer = null, hintWait = null;
 let hintTarget = null;
 function clearHint(){
   if(hintTimer){ clearTimeout(hintTimer); hintTimer=null; }
+  if(hintWait){ clearTimeout(hintWait); hintWait=null; }
   hintTarget = null;
   $("#hintlayer").innerHTML="";
 }
@@ -30,15 +42,19 @@ function placeHint(){
 }
 function showHint(target){
   if(!S.assistedMode || !target) return;
-  if(sess) sess.hintShownThisRound = true; // a prompted correct answer doesn't count as independent mastery
   clearHint();
   hintTarget = target;
-  requestAnimationFrame(()=>{
-    if(hintTarget !== target) return;     // cleared while we waited for the frame
-    $("#hintlayer").appendChild(el("div","hint-hand","👆"));
-    placeHint();
-    hintTimer = setTimeout(clearHint, 3200);
-  });
+  hintWait = setTimeout(()=>{
+    hintWait = null;
+    if(hintTarget !== target || !target.isConnected) return;   // he started, or the round moved on
+    if(sess) sess.hintShownThisRound = true;   // from here on a right answer was prompted, not his own
+    requestAnimationFrame(()=>{
+      if(hintTarget !== target) return;     // cleared while we waited for the frame
+      $("#hintlayer").appendChild(el("div","hint-hand","👆"));
+      placeHint();
+      hintTimer = setTimeout(clearHint, 3200);
+    });
+  }, HINT_DELAY_MS);
 }
 // resize covers the fullscreen swap and rotation; the extra frame catches
 // browsers that fire it before the new layout has settled.

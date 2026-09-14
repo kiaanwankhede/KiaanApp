@@ -25,12 +25,17 @@
      api.attempts()   consecutive wrong tries on whatever he's working on now
      api.refocus()    he's switched to a different piece; restart prompting
      api.miss()       record a wrong try — returns the new attempt count
-     api.hint(el)     point the assisted-mode hand at el
+     api.hint(el)     offer the assisted-mode hand at el (it waits a few seconds)
      api.solved(tag)  this round is complete and correct
 
-   The shell works out on its own whether the round was INDEPENDENT (no wrong
-   tries, no hint shown) and only independent rounds count toward moving up,
-   so no activity can accidentally get that wrong or forget to do it.
+   The shell works out on its own how the round counts, so no activity can get
+   it wrong or forget to do it:
+     no wrong tries, hand never appeared  -> INDEPENDENT, counts toward moving up
+     no wrong tries, but the hand appeared -> PROMPTED, counts neither way
+     any wrong try                        -> counts against
+   Prompted rounds have to be neutral, not failures: the hand is the app's own
+   offer of help, and counting it as a miss is what used to drop him a level
+   for getting every answer right.
    ================================================================ */
 let sess = null;
 
@@ -91,11 +96,12 @@ function roundApi(act, stage){
     solved(tag){
       if(sess.roundDone) return;
       const independent = (sess.roundMisses === 0 && !sess.hintShownThisRound);
+      const prompted    = (sess.roundMisses === 0 &&  sess.hintShownThisRound);
       if(independent) sess.clean++;
       sess.roundDone = true;
       if(tag) logTagStat(act.id, tag, independent);
       scoreCorrect();
-      evaluateMastery(act.id, independent);
+      if(!prompted) evaluateMastery(act.id, independent);   // a prompted round moves nothing
       afterCorrect();
     }
   };

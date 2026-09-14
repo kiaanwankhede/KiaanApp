@@ -141,8 +141,21 @@ banana): emoji fill their boxes unevenly, so across kinds a "bigger" banana can
 look smaller than an apple and the right answer stops being clear.
 
 **Mastery: 80% independent across two consecutive blocks moves up; under 50%
-in one block moves down.** "Independent" means no hint and no prior miss that
-round. Levels he has already reached before need only one good block, because
+in one block moves down.** Each round counts one of three ways: answered with
+no miss before the hand appeared → *independent*, counts toward moving up;
+answered with no miss after the hand appeared → *prompted*, counts neither way;
+any miss → counts against.
+
+**The assisted hand waits 3 seconds before it appears** (`HINT_DELAY_MS`), and
+touching anything first keeps it away for that round. That gap is his chance to
+answer alone — the standard time-delay way of fading a prompt. Both halves of
+this came from a real bug: the hand used to appear the instant each round
+began, so in assisted mode (the default) every round was prompted, no round
+ever counted, and he could never move up in any game. Worse, prompted rounds
+then counted as failures, so a block of all-right answers read as 0% and
+dropped him a level. Never make the hand immediate again, and never let a
+prompted round count against him. `tests/progress.test.js` plays every game
+through the real page and fails if either comes back. Levels he has already reached before need only one good block, because
 the app restarts at level 1 every launch and re-climbing would otherwise cost
 hundreds of answers a session.
 
