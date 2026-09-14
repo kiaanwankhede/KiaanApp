@@ -39,6 +39,7 @@ const ACTIVITY_FILES = [
   "activities/patterns.js",
   "activities/sorting.js",
   "activities/seriate.js",
+  "activities/count.js",
 ];
 
 const SHELL_AFTER = [

@@ -85,16 +85,33 @@ function barSVG(color, scale){
   return `<svg viewBox="0 0 100 100" width="100%" height="100%"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="7" fill="${c}"/></svg>`;
 }
 
+/* A set of things to count: dots, or pictures, at fixed spots on a card. The
+   positions and sizes are stored on the item rather than worked out when it's
+   drawn, so the copy he drags and the copy that lands look exactly like the
+   one he picked up. pts = [{x, y, r, ch?}] in a 100x100 box; ch makes a point
+   a picture instead of a dot. */
+function setSVG(it){
+  const c = COLORS[it.color] || it.color;
+  // an emoji only fills about 3/4 of its font size, so 2.5r draws a picture
+  // about as wide as a 2r dot — it stays inside the space its r reserves
+  const body = it.pts.map(p => p.ch
+    ? `<text x="${p.x}" y="${p.y}" font-size="${(p.r*2.5).toFixed(1)}" text-anchor="middle" dominant-baseline="central">${p.ch}</text>`
+    : `<circle cx="${p.x}" cy="${p.y}" r="${p.r}" fill="${c}"/>`).join("");
+  return `<svg viewBox="0 0 100 100" width="100%" height="100%">${body}</svg>`;
+}
+
 /* item = {k:'shape',shape,color,size} | {k:'em',ch,theme?,scale?} | {k:'text',text,color}
-        | {k:'bar',color,scale} */
+        | {k:'bar',color,scale} | {k:'set',n,layout,color,pts} */
 function itemKey(it){
   if(it.k==="em") return "em:"+it.ch+(typeof it.scale==="number" ? ":"+it.scale : "");
   if(it.k==="text") return "tx:"+it.text;
   if(it.k==="bar") return "bar:"+it.color+":"+it.scale;
+  if(it.k==="set") return "set:"+it.pts.map(p=>p.x+","+p.y+","+p.r+(p.ch||"")).join(";");
   return ["sh",it.shape,it.color,it.size||"big"].join(":");
 }
 function itemNode(it, px){
-  const cls = it.k==="em" ? " emoji" : (it.k==="text" ? " texttile" : (it.k==="bar" ? " bar" : ""));
+  const cls = it.k==="em" ? " emoji" : (it.k==="text" ? " texttile" :
+              (it.k==="bar" ? " bar" : (it.k==="set" ? " set" : "")));
   const d = el("div","tile"+cls);
   if(px) d.style.setProperty("--t", px+"px");
   if(it.k==="em"){
@@ -104,6 +121,7 @@ function itemNode(it, px){
   }
   else if(it.k==="text"){ d.textContent = it.text; d.style.color = it.color; }
   else if(it.k==="bar") d.innerHTML = barSVG(it.color, it.scale);
+  else if(it.k==="set") d.innerHTML = setSVG(it);
   else d.innerHTML = shapeSVG(it.shape, it.color, sizeScaleOf(it.size));
   d._item = it;
   return d;

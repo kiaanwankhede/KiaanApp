@@ -1,8 +1,9 @@
 # Think & Sort
 
-A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Three
-activities so far — Patterns, Sorting and Order — built as **one offline HTML
-file** that runs from a tablet with no network, no install and no dependencies.
+A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Four
+activities so far — Patterns, Sorting, Order and How many — built as **one
+offline HTML file** that runs from a tablet with no network, no install and no
+dependencies.
 
 ```
 npm install     # jsdom, for the tests
@@ -43,6 +44,7 @@ src/
     patterns.js    "what comes next?"  — 40 levels
     sorting.js     "put each where it belongs" — 18 levels
     seriate.js     "finish the steps" — size ordering, 26 levels in 6 stages
+    count.js       "how many?" — match amounts, 21 levels in 6 stages, up to 10
   60-registry.js   the list of activities. Adding one is a line here.
   70-home.js       home screen, generated from the registry
   75-gate.js       passcode gate for Settings
@@ -139,6 +141,25 @@ changes tracks nothing. What's never allowed is a colour that goes with a
 position. Pictures are one kind per round (five apples, never an apple beside a
 banana): emoji fill their boxes unevenly, so across kinds a "bigger" banana can
 look smaller than an apple and the right answer stops being clear.
+
+**How many is about knowing how many, not about reciting numbers.** He can
+say his numbers to 20; the game builds knowing that three is three however it's
+laid out, whatever it's made of and whatever size it comes in. It's staged like
+Order, and guards two shortcuts that would let him score without judging number
+at all. *Pattern:* from stage 2 no choice — right or wrong — is laid out like
+the top card, or "pick the odd one out" would work. *How full a card looks:*
+with same-sized dots, three also means more colour than two; from stage 4 each
+round decides in advance which choice will look closest in total colour and
+which in dot size (the right one only 1 time in 3), so both sit at chance.
+Random sizes are not enough — a first version let "looks as full" find the
+answer 51% of the time. Don't replace the balancing with plain randomness.
+
+**How many's wording changes on purpose; the task doesn't.** The prompt
+rotates ("How many?", "Count them", "Find the same number"…, never the same one
+twice running) and the home card is COUNT on some launches and HOW MANY on
+others. A skill tied to one exact phrase can fail when someone asks it
+differently. This is the one place where the "same every time" principle is
+deliberately relaxed — for words only. Layout, icon and task never change.
 
 **Mastery: 80% independent across two consecutive blocks moves up; under 50%
 in one block moves down.** Each round counts one of three ways: answered with
