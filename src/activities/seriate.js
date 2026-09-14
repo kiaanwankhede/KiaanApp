@@ -2,8 +2,8 @@
    "Finish the steps" — a staircase of five pieces, smallest to biggest, with
    some of them missing. Drag the right piece into each hole.
 
-   THE LADDER
-   ----------
+   THE STAIRCASE
+   -------------
    The staircase is ALWAYS five slots wide. What changes is how many of them
    are empty: one at first, then two, three, four, and finally all five, which
    is full seriation. Keeping the width fixed means the screen looks the same
@@ -11,60 +11,91 @@
    never means learning a new layout.
 
    With four of five already placed, the ordering rule is visible on screen and
-   he can read it off the gradient. That is the point: the early levels are a
-   completion task, and the support fades by taking pieces away rather than by
-   changing what the task looks like.
+   he can read it off the gradient. The early levels are a completion task, and
+   the support fades by taking pieces away rather than by changing the task.
 
-   Five axes, each scored into an explicit load, and the list is sorted by that
-   load — so a hard judgement on one hole sits next to an easy one on three
-   holes rather than being walled off behind it:
+   Gap positions vary: if the hole were always the big end, "put the fattest one
+   on the right" would score perfectly without any ordering at all. A hole in
+   the MIDDLE is the real target — that piece has to be bigger than its left
+   neighbour and smaller than its right one at the same time.
 
-     gaps        1 -> 5            how many decisions, and how much is visible
-     where       end -> middle     a hole at the end asks for the biggest or
-                                   smallest; a hole in the MIDDLE asks for the
-                                   piece that is bigger than its left neighbour
-                                   AND smaller than its right one, which is the
-                                   transitive judgement and the real target
-     spread      far -> near       how close the wrong options are in size
-     material    bars -> shapes    length (one dimension) before area (two)
-     steps       wide -> tight     how far apart the sizes are
+   STAGES, NOT ONE SORTED LIST
+   ---------------------------
+   Unlike Patterns and Sorting, this ladder is grouped into stages, and each
+   stage adds exactly one new thing to look past:
 
-   Colour is random on every piece at every level, so it can never become the
-   thing he orders on. Gap positions vary too: if the hole were always the big
-   end, "put the fattest one on the right" would score perfectly without any
-   ordering at all.
+     1. plain bars      one colour, one shape — height is the ONLY difference
+     2. coloured bars   every piece a different colour
+     3. shapes          area instead of length; one colour again at first
+     4. mixed shapes    a different shape on every piece
+     5. pictures        one fruit / animal / vehicle per round, at five sizes
+     6. tiny steps      the sizes close together
+
+   That breaks the "order by real difficulty, not by structure" rule on
+   purpose: the easiest coloured round sits behind the hardest plain one. It
+   came from playing the first version, where colour changed piece to piece on
+   the very first level — two things changing at once, when the first levels
+   have to change exactly one. Inside a stage, levels are still ordered by load.
+
+   Colour is either the same for the whole round ("one") or random on every
+   piece ("each"). Both are safe against him ordering by colour: the danger is
+   colour TRACKING size, and a colour that never changes tracks nothing. What
+   is never allowed is a colour that goes with a position.
+
+   Pictures use one kind per round — five apples, never an apple beside a
+   banana. Emoji fill their boxes unevenly, so across kinds a "bigger" banana
+   can look smaller than an apple and the right answer stops being clear.
    ========================================================================= */
 
 const SERIATE_SLOTS = 5;
 const SERIATE_RATIOS = { wide:1.30, mid:1.18, tight:1.10 };
 const SERIATE_MIN_SCALE = 0.30;          // below this a piece is too small to judge
+const SERIATE_PICTURES = [].concat(THEMES.fruits, THEMES.animals, THEMES.vehicles);
 
 const SERIATE_LEVELS = [
-  { load:-0.8, name:"Bars · last one · guides", gaps:1, where:"bigEnd",   spread:"far",  material:"bar",   steps:"wide",  guides:true },
-  { load: 0.0, name:"Bars · last one",          gaps:1, where:"bigEnd",   spread:"far",  material:"bar",   steps:"wide"  },
-  { load: 0.2, name:"Bars · first one",         gaps:1, where:"smallEnd", spread:"far",  material:"bar",   steps:"wide"  },
-  { load: 0.8, name:"Bars · one in the middle", gaps:1, where:"middle",   spread:"far",  material:"bar",   steps:"wide"  },
-  { load: 1.4, name:"Bars · middle · close sizes", gaps:1, where:"middle", spread:"near", material:"bar",  steps:"wide"  },
-  { load: 1.6, name:"Bars · 2 gaps",            gaps:2, where:"mixed",    spread:"far",  material:"bar",   steps:"wide"  },
-  { load: 2.1, name:"Shapes · one gap · close sizes", gaps:1, where:"mixed", spread:"near", material:"shape", steps:"mid" },
-  { load: 2.4, name:"Bars · all 5 · guides",    gaps:5, where:"all",      spread:"far",  material:"bar",   steps:"wide", guides:true },
-  { load: 2.7, name:"Bars · 2 gaps · close sizes", gaps:2, where:"mixed", spread:"near", material:"bar",   steps:"mid"   },
-  { load: 3.1, name:"Shapes · 2 gaps · close sizes", gaps:2, where:"mixed", spread:"near", material:"shape", steps:"mid" },
-  { load: 3.2, name:"Bars · all 5",             gaps:5, where:"all",      spread:"far",  material:"bar",   steps:"wide"  },
-  { load: 3.5, name:"Bars · 3 gaps",            gaps:3, where:"mixed",    spread:"near", material:"bar",   steps:"mid"   },
-  { load: 3.9, name:"Shapes · 3 gaps",          gaps:3, where:"mixed",    spread:"near", material:"shape", steps:"mid"   },
-  { load: 4.1, name:"Shapes · all 5",           gaps:5, where:"all",      spread:"far",  material:"shape", steps:"mid"   },
-  { load: 4.2, name:"Bars · 4 gaps",            gaps:4, where:"mixed",    spread:"near", material:"bar",   steps:"mid"   },
-  { load: 4.3, name:"Bars · all 5 · tiny steps",gaps:5, where:"all",      spread:"far",  material:"bar",   steps:"tight" },
-  { load: 4.4, name:"Mixed shapes · 3 gaps",    gaps:3, where:"mixed",    spread:"near", material:"mixed", steps:"mid"   },
-  { load: 4.6, name:"Shapes · 4 gaps",          gaps:4, where:"mixed",    spread:"near", material:"shape", steps:"mid"   },
-  { load: 4.6, name:"Mixed shapes · all 5",     gaps:5, where:"all",      spread:"far",  material:"mixed", steps:"mid"   },
-  { load: 5.2, name:"Mixed shapes · all 5 · tiny steps", gaps:5, where:"all", spread:"far", material:"mixed", steps:"tight" }
+  // 1 — plain bars: one colour, one shape, height is all there is
+  { stage:1, load:-0.8, name:"Bars · last one · guides",  gaps:1, where:"bigEnd",   spread:"far",  material:"bar", colour:"one",  steps:"wide", guides:true },
+  { stage:1, load: 0.0, name:"Bars · last one",           gaps:1, where:"bigEnd",   spread:"far",  material:"bar", colour:"one",  steps:"wide" },
+  { stage:1, load: 0.2, name:"Bars · first one",          gaps:1, where:"smallEnd", spread:"far",  material:"bar", colour:"one",  steps:"wide" },
+  { stage:1, load: 0.8, name:"Bars · one in the middle",  gaps:1, where:"middle",   spread:"far",  material:"bar", colour:"one",  steps:"wide" },
+  { stage:1, load: 1.6, name:"Bars · 2 gaps",             gaps:2, where:"mixed",    spread:"far",  material:"bar", colour:"one",  steps:"wide" },
+  { stage:1, load: 2.4, name:"Bars · 3 gaps",             gaps:3, where:"mixed",    spread:"far",  material:"bar", colour:"one",  steps:"wide" },
+  { stage:1, load: 2.5, name:"Bars · all 5 · guides",     gaps:5, where:"all",      spread:"far",  material:"bar", colour:"one",  steps:"wide", guides:true },
+  { stage:1, load: 3.2, name:"Bars · all 5",              gaps:5, where:"all",      spread:"far",  material:"bar", colour:"one",  steps:"wide" },
+
+  // 2 — coloured bars: the same staircase, colour now changes piece to piece
+  { stage:2, load: 2.2, name:"Colour bars · one gap",     gaps:1, where:"mixed",    spread:"near", material:"bar", colour:"each", steps:"mid" },
+  { stage:2, load: 3.2, name:"Colour bars · 2 gaps",      gaps:2, where:"mixed",    spread:"near", material:"bar", colour:"each", steps:"mid" },
+  { stage:2, load: 3.4, name:"Colour bars · 3 gaps",      gaps:3, where:"mixed",    spread:"far",  material:"bar", colour:"each", steps:"mid" },
+  { stage:2, load: 4.1, name:"Colour bars · 4 gaps",      gaps:4, where:"mixed",    spread:"far",  material:"bar", colour:"each", steps:"mid" },
+  { stage:2, load: 4.2, name:"Colour bars · all 5",       gaps:5, where:"all",      spread:"far",  material:"bar", colour:"each", steps:"mid" },
+
+  // 3 — shapes: area instead of length. Back to one colour while that's new.
+  { stage:3, load: 0.4, name:"Shapes · last one",         gaps:1, where:"bigEnd",   spread:"far",  material:"shape", colour:"one",  steps:"wide" },
+  { stage:3, load: 1.2, name:"Shapes · one in the middle",gaps:1, where:"middle",   spread:"far",  material:"shape", colour:"one",  steps:"wide" },
+  { stage:3, load: 3.3, name:"Shapes · 3 gaps",           gaps:3, where:"mixed",    spread:"far",  material:"shape", colour:"one",  steps:"mid" },
+  { stage:3, load: 4.1, name:"Shapes · all 5",            gaps:5, where:"all",      spread:"far",  material:"shape", colour:"one",  steps:"mid" },
+  { stage:3, load: 4.6, name:"Colour shapes · all 5",     gaps:5, where:"all",      spread:"far",  material:"shape", colour:"each", steps:"mid" },
+
+  // 4 — mixed shapes: a different shape on every piece
+  { stage:4, load: 4.1, name:"Mixed shapes · 2 gaps",     gaps:2, where:"mixed",    spread:"near", material:"mixed", colour:"each", steps:"mid" },
+  { stage:4, load: 4.3, name:"Mixed shapes · 3 gaps",     gaps:3, where:"mixed",    spread:"far",  material:"mixed", colour:"each", steps:"mid" },
+  { stage:4, load: 5.1, name:"Mixed shapes · all 5",      gaps:5, where:"all",      spread:"far",  material:"mixed", colour:"each", steps:"mid" },
+
+  // 5 — pictures: one fruit / animal / vehicle per round, at five sizes
+  { stage:5, load: 1.8, name:"Pictures · one in the middle", gaps:1, where:"middle", spread:"far", material:"picture", colour:"one", steps:"wide" },
+  { stage:5, load: 3.9, name:"Pictures · 3 gaps",         gaps:3, where:"mixed",    spread:"far",  material:"picture", colour:"one", steps:"mid" },
+  { stage:5, load: 4.7, name:"Pictures · all 5",          gaps:5, where:"all",      spread:"far",  material:"picture", colour:"one", steps:"mid" },
+
+  // 6 — tiny steps: the sizes close together
+  { stage:6, load: 4.8, name:"Colour bars · all 5 · tiny steps",  gaps:5, where:"all", spread:"far", material:"bar",   colour:"each", steps:"tight" },
+  { stage:6, load: 5.7, name:"Mixed shapes · all 5 · tiny steps", gaps:5, where:"all", spread:"far", material:"mixed", colour:"each", steps:"tight" }
 ];
-SERIATE_LEVELS.sort((a,b)=>a.load - b.load);   // stable, so declaration order breaks ties
+// stage first, then load inside the stage — stable, so declaration order breaks ties
+SERIATE_LEVELS.sort((a,b)=> (a.stage - b.stage) || (a.load - b.load));
 function seriateEntry(lv){ return SERIATE_LEVELS[Math.min(Math.max(lv,1), SERIATE_LEVELS.length) - 1]; }
 
-const scaleOfItem = (it)=> it.k==="bar" ? it.scale : it.size;
+const scaleOfItem = (it)=> it.k==="shape" ? it.size : it.scale;
 const round4 = (n)=> Math.round(n*10000)/10000;
 
 /* Five sizes in geometric steps, biggest exactly 1 so it fills its tile. */
@@ -74,11 +105,16 @@ function seriateScales(ratio){
   return out;
 }
 
-function seriatePiece(material, scale, roundShape){
-  const cols = Object.keys(COLORS);
-  // colour is random per piece throughout — it must never predict position
-  if(material === "bar") return { k:"bar", color:pick(cols), scale:scale };
-  return { k:"shape", shape: material==="mixed" ? pick(SHAPES) : roundShape, color:pick(cols), size:scale };
+/* What's fixed for a whole round: its one colour, its one shape, its picture.
+   A level decides which of those it holds still and which vary per piece. */
+function seriateRoundLook(){
+  return { colour: pick(Object.keys(COLORS)), shape: pick(SHAPES), picture: pick(SERIATE_PICTURES) };
+}
+function seriatePiece(e, scale, look){
+  if(e.material === "picture") return { k:"em", ch:look.picture, scale:scale };
+  const color = e.colour === "each" ? pick(Object.keys(COLORS)) : look.colour;
+  if(e.material === "bar") return { k:"bar", color:color, scale:scale };
+  return { k:"shape", shape: e.material==="mixed" ? pick(SHAPES) : look.shape, color:color, size:scale };
 }
 
 function seriateGapPositions(e){
@@ -107,8 +143,8 @@ function seriateDistractorScales(want, scales){
 function buildSeriate(lv){
   const e = seriateEntry(lv);
   const scales = seriateScales(SERIATE_RATIOS[e.steps]);
-  const roundShape = pick(SHAPES);                 // one shape per round unless "mixed"
-  const pieces = scales.map(s=>seriatePiece(e.material, s, roundShape));
+  const look = seriateRoundLook();
+  const pieces = scales.map(s=>seriatePiece(e, s, look));
   const gaps = seriateGapPositions(e);
 
   const want = scales[gaps[0]];
@@ -117,7 +153,9 @@ function buildSeriate(lv){
   if(extra > 0){
     let cand = seriateDistractorScales(want, scales);
     if(e.spread !== "near") cand = cand.slice().reverse();   // "far" takes the least similar
-    cand.slice(0, extra).forEach(s=>tray.push(seriatePiece(e.material, s, roundShape)));
+    // wrong options wear the round's look too, so on a one-colour level they
+    // differ from the right answer in size and nothing else
+    cand.slice(0, extra).forEach(s=>tray.push(seriatePiece(e, s, look)));
   }
 
   // never hand him the answer already laid out in order
@@ -138,7 +176,10 @@ const SERIATION = {
     const e = seriateEntry(lv);
     const missing = e.gaps >= SERIATE_SLOTS ? "The whole staircase is empty."
                   : e.gaps === 1 ? "One piece is missing." : e.gaps + " pieces are missing.";
-    return "Five steps, smallest to biggest. " + missing +
+    const look = e.material === "picture" ? " Five of the same picture, in different sizes."
+               : e.colour === "one" ? " Every piece is the same colour, so size is the only difference."
+               : " Colours change from piece to piece.";
+    return "Five steps, smallest to biggest. " + missing + look +
            (e.guides ? " Faint outlines show what goes where." : "");
   },
 

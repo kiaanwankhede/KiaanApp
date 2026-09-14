@@ -42,7 +42,7 @@ src/
   activities/
     patterns.js    "what comes next?"  — 40 levels
     sorting.js     "put each where it belongs" — 18 levels
-    seriate.js     "finish the steps" — size ordering, 20 levels
+    seriate.js     "finish the steps" — size ordering, 26 levels in 6 stages
   60-registry.js   the list of activities. Adding one is a line here.
   70-home.js       home screen, generated from the registry
   75-gate.js       passcode gate for Settings
@@ -121,6 +121,24 @@ the *middle* is the real target: that piece has to be bigger than its left
 neighbour and smaller than its right one at the same time. Bars come before
 scaled shapes for the same kind of reason — comparing length is one dimension,
 comparing area is two.
+
+**Order is the one ladder grouped into stages — deliberately.** It is the
+exception to "ordered by real difficulty, not by structure" above. The first
+version put a different colour on every piece from level 1, so two things were
+changing at once; playing it showed the first levels have to change exactly
+one. So the whole first stage is plain bars — one colour, one shape, height is
+the only difference — and each later stage adds exactly one thing to look past:
+colour, then shapes (back on one colour while shape is new), then mixed shapes,
+then pictures, then tiny steps. The cost is accepted on purpose: the easiest
+coloured round sits behind the hardest plain one. Inside a stage, levels are
+still ordered by load. Don't flatten it back into one sorted list.
+
+Holding colour *the same* for a whole round is as safe against latching as
+randomising it — the danger is colour tracking size, and a colour that never
+changes tracks nothing. What's never allowed is a colour that goes with a
+position. Pictures are one kind per round (five apples, never an apple beside a
+banana): emoji fill their boxes unevenly, so across kinds a "bigger" banana can
+look smaller than an apple and the right answer stops being clear.
 
 **Mastery: 80% independent across two consecutive blocks moves up; under 50%
 in one block moves down.** "Independent" means no hint and no prior miss that

@@ -85,10 +85,10 @@ function barSVG(color, scale){
   return `<svg viewBox="0 0 100 100" width="100%" height="100%"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="7" fill="${c}"/></svg>`;
 }
 
-/* item = {k:'shape',shape,color,size} | {k:'em',ch,theme?} | {k:'text',text,color}
+/* item = {k:'shape',shape,color,size} | {k:'em',ch,theme?,scale?} | {k:'text',text,color}
         | {k:'bar',color,scale} */
 function itemKey(it){
-  if(it.k==="em") return "em:"+it.ch;
+  if(it.k==="em") return "em:"+it.ch+(typeof it.scale==="number" ? ":"+it.scale : "");
   if(it.k==="text") return "tx:"+it.text;
   if(it.k==="bar") return "bar:"+it.color+":"+it.scale;
   return ["sh",it.shape,it.color,it.size||"big"].join(":");
@@ -97,7 +97,11 @@ function itemNode(it, px){
   const cls = it.k==="em" ? " emoji" : (it.k==="text" ? " texttile" : (it.k==="bar" ? " bar" : ""));
   const d = el("div","tile"+cls);
   if(px) d.style.setProperty("--t", px+"px");
-  if(it.k==="em") d.textContent = it.ch;
+  if(it.k==="em"){
+    d.textContent = it.ch;
+    // Order sizes a picture continuously; everywhere else an emoji fills its tile
+    if(typeof it.scale === "number") d.style.fontSize = "calc(var(--t,78px) * " + (0.8*it.scale).toFixed(3) + ")";
+  }
   else if(it.k==="text"){ d.textContent = it.text; d.style.color = it.color; }
   else if(it.k==="bar") d.innerHTML = barSVG(it.color, it.scale);
   else d.innerHTML = shapeSVG(it.shape, it.color, sizeScaleOf(it.size));
