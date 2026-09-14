@@ -116,12 +116,42 @@ const SOLVE = {
   },
 };
 
+/* Trace isn't a drop: trace the current stroke from where he's up to, first
+   wandering well off the line if this round should have a mistake in it. */
+function traceTurn(win, withMiss) {
+  const board = win.document.querySelector("#stage .trace-board");
+  const s = board._trace.stroke(), tol = board._trace.tol;
+  board.__rect = { left: 0, top: 0, width: 160, height: 100 };     // a screen pixel is a board unit
+  const at = s.pts[s.k];
+  const go = (type, q) => {
+    const e = pointer(win, type, q.x, q.y);
+    board.dispatchEvent(e);
+  };
+  if (withMiss) {
+    go("pointerdown", at);
+    go("pointermove", { x: at.x, y: at.y + (at.y < 50 ? 1 : -1) * tol * 4.5 });
+    go("pointerup", at);
+  }
+  go("pointerdown", at);
+  s.pts.slice(s.k).forEach((q) => go("pointermove", q));
+  go("pointerup", s.pts[s.pts.length - 1]);
+}
+
 async function play(win, kind, rounds, miss, waitForHand) {
   const T = win.__tns;
   let missed = -1, guard = 0;
   while (T.sess && T.sess.correct < rounds && guard++ < 5000) {
     await sleep(3);
     if (!win.document.querySelector("#play").classList.contains("on")) continue;   // reward screen
+    if (kind === "trace") {
+      const board = win.document.querySelector("#stage .trace-board");
+      if (!board || !board._trace || !board.querySelector(".trace-start")) continue;
+      if (waitForHand && !T.sess.hintShownThisRound) continue;
+      const doMiss = miss && missed !== T.sess.asked;
+      traceTurn(win, doMiss);
+      if (doMiss) missed = T.sess.asked;
+      continue;
+    }
     const mv = SOLVE[kind](win);
     if (!mv || !mv.right[1]) continue;                                              // between rounds
     if (waitForHand && !T.sess.hintShownThisRound) continue;                        // sit and wait for the hand
@@ -148,7 +178,7 @@ async function scenario(kind, { assisted, startAt = 1, rounds, miss = false, wai
 
 (async () => {
   const kinds = registeredActivities().map((c) =>
-    ({ PATTERNS: "pattern", SORTING: "sort", SERIATION: "seriate", COUNTING: "count" }[c]));
+    ({ PATTERNS: "pattern", SORTING: "sort", SERIATION: "seriate", COUNTING: "count", TRACING: "trace" }[c]));
   check(kinds.every(Boolean), "every registered activity has a solver here");
   const allErrors = [];
 

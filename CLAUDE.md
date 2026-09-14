@@ -1,9 +1,9 @@
 # Think & Sort
 
-A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Four
-activities so far — Patterns, Sorting, Order and How many — built as **one
-offline HTML file** that runs from a tablet with no network, no install and no
-dependencies.
+A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Five
+activities so far — Patterns, Sorting, Order, How many and Trace — built as
+**one offline HTML file** that runs from a tablet with no network, no install
+and no dependencies.
 
 ```
 npm install     # jsdom, for the tests
@@ -45,6 +45,7 @@ src/
     sorting.js     "put each where it belongs" — 18 levels
     seriate.js     "finish the steps" — size ordering, 26 levels in 6 stages
     count.js       "how many?" — match amounts, 21 levels in 6 stages, up to 10
+    trace.js       "follow the line" — pre-writing strokes with a stylus, 23 levels
   60-registry.js   the list of activities. Adding one is a line here.
   70-home.js       home screen, generated from the registry
   75-gate.js       passcode gate for Settings
@@ -160,6 +161,25 @@ twice running) and the home card is COUNT on some launches and HOW MANY on
 others. A skill tied to one exact phrase can fail when someone asks it
 differently. This is the one place where the "same every time" principle is
 deliberately relaxed — for words only. Layout, icon and task never change.
+
+**Trace teaches the movement; paper builds the hand.** The tablet is for
+which way a stroke goes and how to steer it. Glass has no friction, so grip
+and strength come from chunky crayons on paper — the two are meant to go
+together, and the app shouldn't try to be both. Strokes follow the usual
+developmental order (lines, curves, circle, joined strokes, slants), each
+coming in on a wide road with arrows, then dotted, then dots, with the allowed
+distance narrowing. Direction is enforced — top to bottom, left to right, the
+circle from the top the way *o* is written — because that's how letters form.
+
+**Trace never fails him.** Off the line, the crayon just pauses. Lifting is
+fine; the green dot moves with him to show where to carry on. Getting close to
+the star counts once he's nearly there — without that, a wobbly hand got stuck
+at 98%, which the tests caught. A touch only starts drawing on the green dot,
+so a resting palm does nothing; once a real pen has been seen, fingers are
+ignored entirely. The judging lives in `traceTracker()`, free of the DOM, and
+`tests/trace.test.js` runs it on every shape at every tolerance — including
+that jumping ahead, cutting across a circle or going round the wrong way never
+finishes a shape.
 
 **Mastery: 80% independent across two consecutive blocks moves up; under 50%
 in one block moves down.** Each round counts one of three ways: answered with

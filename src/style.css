@@ -123,6 +123,15 @@
   /* the guide silhouette is a size cue, not a piece — no card, no shadow */
   .slot .ghost{background:none;box-shadow:none;opacity:.5}
 
+  /* ---------- TRACE ---------- */
+  .trace-board{display:block;width:min(94vw, calc((100vh - 170px) * 1.6));aspect-ratio:160/100;
+    background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);touch-action:none}
+  .trace-start{transform-box:fill-box;transform-origin:center;animation:tracepulse 1.2s ease-in-out infinite}
+  @keyframes tracepulse{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
+  /* on dotted / dots levels the road is hidden, and comes back if he wanders a lot */
+  .trace-road-hidden{opacity:0;transition:opacity .4s ease}
+  .trace-road-hidden.show{opacity:1}
+
   /* drag layer */
   #draglayer{position:fixed;inset:0;pointer-events:none;z-index:60}
   #draglayer .tile{position:absolute;transform:translate(-50%,-50%) scale(1.18);box-shadow:0 14px 30px rgba(36,48,68,.28)}
