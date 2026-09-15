@@ -67,15 +67,20 @@
   #stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(14px,3vh,30px);min-height:0}
   .prompt-line{font-size:clamp(15px,3vw,20px);color:var(--ink-soft);letter-spacing:.5px}
 
-  /* corner readout: current level and how close to the next one. Quiet by
-     default — this is for the parent watching, not something to draw his eye —
-     and it briefly warms up when the level itself just changed. */
+  /* corner readout: current level and how close to the next one. Meant for the
+     parent watching, not to draw a child's eye — but it still has to be
+     readable at a glance on a tablet, not just in a zoomed-in screenshot. The
+     first version (11px, 50% opacity, no backing) tested fine up close but was
+     essentially invisible at a normal viewing distance; the pill behind it is
+     what actually fixes that, since the low-opacity text alone did not. */
   #lvWatermark{
-    position:absolute;right:12px;bottom:8px;text-align:right;line-height:1.35;
-    font-size:11px;color:var(--ink-soft);opacity:.5;pointer-events:none;
-    transition:opacity .3s ease,color .3s ease;
+    position:absolute;right:10px;bottom:8px;text-align:right;line-height:1.4;
+    font-size:12px;font-weight:600;color:var(--ink-soft);
+    background:rgba(255,255,255,.85);box-shadow:var(--shadow);
+    padding:4px 10px;border-radius:10px;pointer-events:none;
+    transition:color .3s ease,background .3s ease;
   }
-  #lvWatermark.up{opacity:.95;color:var(--good)}
+  #lvWatermark.up{color:var(--good);background:#fff}
 
   /* sequence strip */
   .seq{display:flex;gap:clamp(6px,1.4vw,14px);flex-wrap:wrap;justify-content:center;align-items:center}
