@@ -193,7 +193,9 @@ function countSizes(target, sampleCap, ns, caps, trap){
       if(trap){
         ro[jA] = Math.sqrt(aS / ns[jA]);
         if(ro[jA] < 5 || ro[jA] > caps[jA]) continue;
-        if(Math.abs(ns[0]*ro[0]*ro[0] - aS) / aS < 0.25) continue;
+        // at least 25% apart once drawn; aim for 28% because rounding the dot
+        // sizes for drawing can shave a few hundredths of a percent off
+        if(Math.abs(ns[0]*ro[0]*ro[0] - aS) / aS < 0.28) continue;
       }
       if(nearest(i => Math.abs(ns[i]*ro[i]*ro[i] - aS)) !== jA) continue;
       if(nearest(i => Math.abs(ro[i] - rs)) !== jS) continue;
@@ -215,7 +217,7 @@ function buildCount(lv){
   const e = countEntry(lv);
   const ask = e.ask === "numBoth" ? pick(["numToDots","dotsToNum"]) : e.ask;
   const target = e.range[0] + rnd(e.range[1] - e.range[0] + 1);
-  const counts = countChoices(target, e);
+  let counts = countChoices(target, e);
   const colour = pick(Object.keys(COLORS));
   const hex = COLORS[colour];
   const pics = e.pics || "none";
@@ -238,17 +240,30 @@ function buildCount(lv){
   // layouts first — from stage 2 on NO choice copies the top card's layout,
   // the right one or the wrong ones
   const sampleIsSet = ask !== "numToDots", choicesAreSets = ask !== "dotsToNum";
-  const sampleType = sampleIsSet ? typeFor(target, null) : null;
-  const types = counts.map(n => choicesAreSets ? typeFor(n, sampleType) : null);
+  let sampleType = sampleIsSet ? typeFor(target, null) : null;
+  let types = counts.map(n => choicesAreSets ? typeFor(n, sampleType) : null);
 
-  // then sizes
+  // then sizes. Stage 4 needs a fair set of sizes, and some combinations of
+  // layouts and wrong numbers simply have none (a 5-dot line leaves no room
+  // for a decoy with a 1-dot card's colour). Falling back to random sizes let
+  // about 1 round in 300 of "big and few" go out with no decoy at all, so
+  // instead re-pick the layouts — and now and then the wrong numbers — until
+  // a fair set exists.
   let rs = plainR, ro = counts.map(()=>plainR);
   if(pics !== "none"){ rs = COUNT_PIC_R; ro = counts.map(()=>COUNT_PIC_R); }
   else if(size !== "one"){
-    const caps = counts.map((n,i)=> countRmax(types[i], n));
-    const fit = countSizes(target, countRmax(sampleType, target), counts, caps, size === "trap");
+    let fit = null;
+    for(let attempt=0; attempt<60 && !fit; attempt++){
+      if(attempt > 0){
+        if(attempt % 6 === 0) counts = countChoices(target, e);
+        sampleType = typeFor(target, null);
+        types = counts.map(n => typeFor(n, sampleType));
+      }
+      const caps = counts.map((n,i)=> countRmax(types[i], n));
+      fit = countSizes(target, countRmax(sampleType, target), counts, caps, size === "trap");
+    }
     if(fit){ rs = fit.rs; ro = fit.ro; }
-    else ro = caps.map(c => COUNT_MIN_R + Math.random()*(c - COUNT_MIN_R));   // not seen in practice
+    else ro = counts.map((n,i)=> COUNT_MIN_R + Math.random()*(countRmax(types[i], n) - COUNT_MIN_R));   // a last resort
   }
 
   const sample = sampleIsSet ? countCard(target, sampleType, rs, colour, kindFor(true))

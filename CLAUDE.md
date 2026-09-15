@@ -45,7 +45,7 @@ src/
     sorting.js     "put each where it belongs" — 18 levels
     seriate.js     "finish the steps" — size ordering, 26 levels in 6 stages
     count.js       "how many?" — match amounts, 21 levels in 6 stages, up to 10
-    trace.js       "follow the line" — pre-writing strokes with a stylus, 23 levels
+    trace.js       "follow the line" — strokes, then numbers 0–9, then smaller, 30 levels
   60-registry.js   the list of activities. Adding one is a line here.
   70-home.js       home screen, generated from the registry
   75-gate.js       passcode gate for Settings
@@ -153,7 +153,10 @@ with same-sized dots, three also means more colour than two; from stage 4 each
 round decides in advance which choice will look closest in total colour and
 which in dot size (the right one only 1 time in 3), so both sit at chance.
 Random sizes are not enough — a first version let "looks as full" find the
-answer 51% of the time. Don't replace the balancing with plain randomness.
+answer 51% of the time. Don't replace the balancing with plain randomness, and
+don't let it fall back to random sizes either: some layout combinations have no
+fair sizes, and falling back let 1 "big and few" round in 300 go out with no
+decoy. It re-picks layouts until a fair set exists — 100,000 of 100,000 rounds.
 
 **How many's wording changes on purpose; the task doesn't.** The prompt
 rotates ("How many?", "Count them", "Find the same number"…, never the same one
@@ -166,17 +169,24 @@ deliberately relaxed — for words only. Layout, icon and task never change.
 which way a stroke goes and how to steer it. Glass has no friction, so grip
 and strength come from chunky crayons on paper — the two are meant to go
 together, and the app shouldn't try to be both. Strokes follow the usual
-developmental order (lines, curves, circle, joined strokes, slants), each
-coming in on a wide road with arrows, then dotted, then dots, with the allowed
-distance narrowing. Direction is enforced — top to bottom, left to right, the
-circle from the top the way *o* is written — because that's how letters form.
+developmental order (lines, curves, circle, joined strokes, slants), then the
+numbers 0–9, then the same things smaller — handwriting grows from big arm
+movements to small controlled ones. Each stage comes in on a wide path with
+arrows, then dotted, then dots, with the allowed distance narrowing.
+Direction and stroke order are enforced — top to bottom, left to right, the
+circle and 0 from the top the way *o* is written, a 5 down-and-round before its
+flag — because that's how letters and numbers form. On dotted and dots levels a
+green arrow at each start is the only thing saying which way to go; keep it.
 
-**Trace never fails him.** Off the line, the crayon just pauses. Lifting is
-fine; the green dot moves with him to show where to carry on. Getting close to
-the star counts once he's nearly there — without that, a wobbly hand got stuck
-at 98%, which the tests caught. A touch only starts drawing on the green dot,
-so a resting palm does nothing; once a real pen has been seen, fingers are
-ignored entirely. The judging lives in `traceTracker()`, free of the DOM, and
+**Trace never fails him, and never goes dead on him.** His line always
+follows his hand — in colour on the line, faint grey off it — so the tablet
+visibly responds. Lifting is fine; the green dot moves with him to show where
+to carry on. Getting close to the star counts once he's nearly there — without
+that, a wobbly hand got stuck at 98%, which the tests caught. A touch only
+starts drawing on the green dot, so a resting palm does nothing. While a real
+pen is in use (seen in the last minute) fingers are ignored entirely — the
+minute matters: ignoring fingers for good meant a lost or flat pen left the
+game silently dead. The judging lives in `traceTracker()`, free of the DOM, and
 `tests/trace.test.js` runs it on every shape at every tolerance — including
 that jumping ahead, cutting across a circle or going round the wrong way never
 finishes a shape.

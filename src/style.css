@@ -128,9 +128,12 @@
     background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);touch-action:none}
   .trace-start{transform-box:fill-box;transform-origin:center;animation:tracepulse 1.2s ease-in-out infinite}
   @keyframes tracepulse{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
-  /* on dotted / dots levels the road is hidden, and comes back if he wanders a lot */
+  /* on dotted / dots levels the path is hidden, and comes back if he wanders a lot */
   .trace-road-hidden{opacity:0;transition:opacity .4s ease}
   .trace-road-hidden.show{opacity:1}
+  /* finishing: the star pops */
+  .trace-won{transform-box:fill-box;transform-origin:center;animation:tracewon .5s ease-out forwards}
+  @keyframes tracewon{0%{transform:scale(1)}60%{transform:scale(2.1)}100%{transform:scale(1.6)}}
 
   /* drag layer */
   #draglayer{position:fixed;inset:0;pointer-events:none;z-index:60}

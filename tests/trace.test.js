@@ -12,12 +12,13 @@
 const { pureContext, bootApp, Runner } = require("./_harness");
 const T = pureContext(["20-stimuli.js", "activities/trace.js"],
   ["TRACE_LEVELS", "traceEntry", "TRACE_SHAPES", "TRACE_TOL", "traceTracker", "buildTrace",
-   "TRACE_W", "TRACE_H", "LINES", "CURVES", "JOINED", "SLANTED"]);
+   "TRACE_W", "TRACE_H", "LINES", "CURVES", "JOINED", "SLANTED", "NUMBERS", "SMALL_SHAPES", "SMALL_NUMBERS"]);
 
 const R = new Runner("trace");
 const check = (c, m) => R.check(c, m);
 const SHAPES = Object.keys(T.TRACE_SHAPES);
-const TOLS = Object.values(T.TRACE_TOL);
+// every shape at the tolerances it can actually be traced at
+const tolsFor = (k) => (/^small_/.test(k) ? [T.TRACE_TOL.small] : [T.TRACE_TOL.road, T.TRACE_TOL.dotted, T.TRACE_TOL.dots]);
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
 /* ---- the strokes: inside the board, evenly spaced, going the right way ---- */
@@ -26,7 +27,9 @@ SHAPES.forEach((k) => {
   s.paths.forEach((p, i) => {
     check(p.every((q) => q.x >= 4 && q.x <= T.TRACE_W - 4 && q.y >= 4 && q.y <= T.TRACE_H - 4), `${k}: stroke ${i + 1} stays on the board`);
     check(p.slice(1).every((q, j) => dist(q, p[j]) <= 1.0001), `${k}: stroke ${i + 1} points are evenly spaced`);
-    check(p.length > 30, `${k}: stroke ${i + 1} is long enough to be worth tracing`);
+    // a stroke has to be well longer than the green dot is wide, or it's a tap, not a trace
+    // (the small 5's flag is the shortest: 23 units, about 145px on the tablet)
+    check(p.length > (/^small_/.test(k) ? 20 : 30), `${k}: stroke ${i + 1} is long enough to be worth tracing`);
   });
 });
 const P = (k, i = 0) => T.TRACE_SHAPES[k].paths[i];
@@ -55,8 +58,39 @@ check(rising(P("cross", 0), (q) => q.y) && rising(P("cross", 1), (q) => q.y), "X
 check(closed(P("triangle")) && Math.abs(first(P("triangle")).y - Math.min(...P("triangle").map((q) => q.y))) < 0.01,
   "triangle: starts at the top and closes up");
 
+/* numbers: drawn the way they're taught — every one starts in the top half */
+T.NUMBERS.forEach((k) => {
+  const s = T.TRACE_SHAPES[k];
+  check(first(s.paths[0]).y <= 50, `${s.name}: starts in the top half — numbers are written top down`);
+  check(s.paths.every((p) => p.length > 30), `${s.name}: every stroke is long enough to trace`);
+});
+check(rising(P("n1"), (q) => q.y) && P("n1").every((q) => q.x === 80), "1: straight down");
+check(P("n7")[5].x > first(P("n7")).x && P("n7")[5].y === first(P("n7")).y && last(P("n7")).y > 80, "7: across first, then down the slant");
+check(T.TRACE_SHAPES.n4.paths.length === 2 && P("n4", 0)[5].y > first(P("n4", 0)).y && rising(P("n4", 1), (q) => q.y),
+  "4: two strokes — down and across, then the long line down");
+check(T.TRACE_SHAPES.n5.paths.length === 2 && P("n5", 0)[5].y > first(P("n5", 0)).y && rising(P("n5", 1), (q) => q.x),
+  "5: down and round first, then the flag across the top");
+["n0", "n8"].forEach((k) => {
+  const p = P(k);
+  check(Math.abs(first(p).y - Math.min(...p.map((q) => q.y))) < 0.01 && p[5].x < first(p).x && closed(p),
+    `${k.slice(1)}: starts at the very top, goes left first, and closes up`);
+});
+check(P("n9")[5].y < first(P("n9")).y && last(P("n9")).y > 80, "9: up and round the loop first, then straight down");
+check(first(P("n2")).x < 80 && P("n2")[5].y < first(P("n2")).y && last(P("n2")).x > 100 && last(P("n2")).y > 80,
+  "2: from the left, up and over, finishing along the bottom");
+check(first(P("n3")).x < 80 && P("n3")[5].y < first(P("n3")).y && last(P("n3")).x < 80 && last(P("n3")).y > 66,
+  "3: from the left, two bumps, finishing bottom left");
+check(first(P("n6")).x > 90 && first(P("n6")).y < 25 && P("n6")[5].x < first(P("n6")).x, "6: from the top right, curving down the left");
+
+/* the small versions are the same strokes, shrunk towards the middle */
+T.SMALL_SHAPES.concat(T.SMALL_NUMBERS).forEach((k) => {
+  const big = T.TRACE_SHAPES[k.replace(/^small_/, "")], small = T.TRACE_SHAPES[k];
+  const span = (s) => { const ys = s.paths.flat().map((q) => q.y); return Math.max(...ys) - Math.min(...ys); };
+  check(small.paths.length === big.paths.length && span(small) < span(big) * 0.65 + 0.5, `${small.name}: smaller than the full size, same strokes`);
+});
+
 /* ---- the ladder ---- */
-check(T.TRACE_LEVELS.length === 23, "the ladder has 23 levels");
+check(T.TRACE_LEVELS.length === 30, "the ladder has 30 levels");
 let prevStage = 0, prevLoad = -Infinity;
 T.TRACE_LEVELS.forEach((e, i) => {
   check(e.stage >= prevStage, `level ${i + 1} (${e.name}) isn't in an earlier stage than the one before`);
@@ -71,14 +105,22 @@ check(onlyFrom(2, T.CURVES), "stage 2 is curves only");
 check(onlyFrom(3, ["circle"]), "stage 3 is the circle");
 check(onlyFrom(4, T.JOINED), "stage 4 is joined strokes");
 check(onlyFrom(5, T.SLANTED), "stage 5 is slants");
-check(T.traceEntry(1).shapes.join() === "down" && T.traceEntry(1).guide === "road", "level 1 is one down line, on the road");
+check(onlyFrom(6, T.NUMBERS), "stage 6 is the numbers 0–9");
+check(onlyFrom(7, T.SMALL_SHAPES.concat(T.SMALL_NUMBERS)) && inStage(7).every((e) => e.small), "stage 7 is the same things, smaller");
+check(T.NUMBERS.every((n) => inStage(6).some((e) => e.shapes.indexOf(n) !== -1 && e.guide === "road")),
+  "every number is met first on the wide path");
+check(T.traceEntry(1).shapes.join() === "down" && T.traceEntry(1).guide === "road", "level 1 is one down line, on the wide path");
+check(T.TRACE_LEVELS.every((e) => !/road/i.test(e.name)), "level names say 'wide path', not the code's word 'road'");
 const ORDER = { road: 0, dotted: 1, dots: 2 };
-[1, 2, 3, 4, 5].forEach((n) => {
+[1, 2, 3, 4, 5, 6].forEach((n) => {
   const g = inStage(n).map((e) => ORDER[e.guide]);
-  check(g[0] === 0, `stage ${n} starts on the road`);
-  check(g.every((v, i) => i === 0 || v >= g[i - 1]), `stage ${n} only ever fades its support: road, then dotted, then dots`);
+  check(g[0] === 0, `stage ${n} starts on the wide path`);
+  check(g.every((v, i) => i === 0 || v >= g[i - 1]), `stage ${n} only ever fades its support: path, then dotted, then dots`);
 });
-check(T.TRACE_TOL.road > T.TRACE_TOL.dotted && T.TRACE_TOL.dotted > T.TRACE_TOL.dots, "how far off still counts narrows as the support fades");
+check(T.TRACE_TOL.road > T.TRACE_TOL.dotted && T.TRACE_TOL.dotted > T.TRACE_TOL.dots && T.TRACE_TOL.dots > T.TRACE_TOL.small,
+  "how far off still counts narrows as the support fades, and again for the small sizes");
+check(T.buildTrace(T.TRACE_LEVELS.findIndex((e) => e.small) + 1).tol === T.TRACE_TOL.small, "small levels use the tighter tolerance");
+check(/^Trace the \d$/.test(T.buildTrace(T.TRACE_LEVELS.findIndex((e) => e.stage === 6) + 1).head), "number levels say which number to trace");
 
 // rounds: every shape of a level comes up, and never the same one twice running
 for (let lv = 1; lv <= T.TRACE_LEVELS.length; lv++) {
@@ -122,7 +164,7 @@ function away(pts, i, tol) {
 
 SHAPES.forEach((k) => {
   T.TRACE_SHAPES[k].paths.forEach((pts, si) => {
-    TOLS.forEach((tol) => {
+    tolsFor(k).forEach((tol) => {
       const tag = `${k}${T.TRACE_SHAPES[k].paths.length > 1 ? " stroke " + (si + 1) : ""} @${tol}`;
       const end = pts.length - 1, mid = Math.floor(end / 2);
 
@@ -216,22 +258,48 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   check(board.querySelectorAll("polyline[stroke='#8fa1ba']").length >= 1, "the road has arrows showing the way");
 
   stroke(board, [{ x: 150, y: 95 }, { x: 140, y: 90 }]);
-  check(board.querySelectorAll("polyline[stroke-width='4.5']").length === 0, "a palm landing away from the dot draws nothing");
+  check(board.querySelectorAll("polyline[stroke-width='4.5']").length === 0 && board.querySelectorAll("polyline[stroke='#c7d0dd']").length === 0,
+    "a palm landing away from the dot draws nothing at all");
 
+  // he sets off, drifts off the line, comes back and finishes
   const pts = board._trace.stroke().pts;
-  stroke(board, pts);
-  check(doc.querySelectorAll("#tokens .tok.full").length === 1, "tracing the line to the star finishes the round and earns a token");
-  check(board.querySelectorAll("polyline[stroke-width='4.5']").length >= 1, "and his crayon line is left on the board");
+  const go = (type, q) => board.dispatchEvent(ptr(type, q));
+  go("pointerdown", pts[0]);
+  pts.slice(0, 11).forEach((q) => go("pointermove", q));
+  go("pointermove", { x: pts[10].x + 15, y: pts[10].y + 3 });
+  go("pointermove", { x: pts[10].x + 16, y: pts[10].y + 5 });
+  check(board.querySelectorAll("polyline[stroke='#c7d0dd']").length === 1,
+    "off the line his line keeps following his hand, in grey — the tablet never goes dead on him");
+  const colouredBefore = board.querySelectorAll("polyline[stroke-width='4.5']").length;
+  pts.slice(10).forEach((q) => go("pointermove", q));
+  go("pointerup", pts[pts.length - 1]);
+  check(board.querySelectorAll("polyline[stroke-width='4.5']").length === colouredBefore + 1,
+    "back on the line, the colour picks up again");
+  check(doc.querySelectorAll("#tokens .tok.full").length === 1, "tracing on to the star finishes the round and earns a token");
+  check(!!board.querySelector("polygon.trace-won"), "the star pops when he gets there");
+  check(!board.querySelector(".trace-start"), "and the green dot is gone, since there's nothing left to trace");
+  const saved = JSON.parse(window.localStorage.getItem("lr_state_v1"));
+  check(saved.progress.tagStats && saved.progress.tagStats.trace && saved.progress.tagStats.trace["down line"],
+    "Settings records it as 'down line', not the code's name for it");
 
-  // once a real pen has been seen, fingers and palms stop counting
+  // while a real pen is in use, fingers and palms stop counting
   await sleep(700);                                              // next round
   const b2 = $("#stage .trace-board"), p2 = b2._trace.stroke().pts;
   b2.dispatchEvent(ptr("pointerdown", { x: 1, y: 1 }, "pen"));   // the pen touches down somewhere harmless
   b2.dispatchEvent(ptr("pointerup", { x: 1, y: 1 }, "pen"));
   stroke(b2, p2, "touch");
-  check(b2._trace.stroke().k === 0, "with a real pen about, a finger or palm on the line does nothing");
-  stroke(b2, p2, "pen");
-  check(doc.querySelectorAll("#tokens .tok.full").length === 2, "and the pen itself traces as normal");
+  check(b2._trace.stroke().k === 0, "with a pen in use, a finger or palm on the line does nothing");
+  // ...but not forever: a lost or flat pen mustn't leave finger tracing switched off
+  const realNow = window.Date.now;
+  window.Date.now = () => realNow.call(window.Date) + 61000;
+  stroke(b2, p2, "touch");
+  window.Date.now = realNow;
+  check(doc.querySelectorAll("#tokens .tok.full").length === 2, "a minute after the pen was last seen, a finger traces again");
+
+  await sleep(700);
+  const b3 = $("#stage .trace-board");
+  stroke(b3, b3._trace.stroke().pts, "pen");
+  check(doc.querySelectorAll("#tokens .tok.full").length === 3, "and the pen itself traces as normal");
 
   R.finish(errors);
 })();

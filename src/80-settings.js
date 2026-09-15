@@ -112,14 +112,15 @@ async function openSettings(){
     g5.appendChild(r);
   });
   // per-tag breakdown, for any activity that tags its rounds (Patterns tags
-  // real-object rounds by theme). Purely informational — nothing gates on it.
+  // real-object rounds by theme, Trace tags each stroke by name). Purely
+  // informational — nothing gates on it.
   const allTags = progress.tagStats || {};
   Object.keys(allTags).forEach(actId=>{
     const forAct = allTags[actId];
     const keys = Object.keys(forAct);
     if(!keys.length) return;
     const head = el("div","hint", activityById(actId).name.toLowerCase().replace(/^./,c=>c.toUpperCase()) +
-      ", by theme (independent / seen):");
+      ", by kind (independent / seen):");
     head.style.marginTop = "4px";
     g5.appendChild(head);
     keys.forEach(t=>{
