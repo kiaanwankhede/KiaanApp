@@ -15,6 +15,7 @@ const DEFAULTS = {
   dimAfter: 2,
   showAfter: 3,
   autoAdvance: true,
+  neverDemote: true,          // a rough block resets the count toward the next level up rather than dropping him
   useEmojiPack: true,
   assistedMode: true,
   gate: "135",

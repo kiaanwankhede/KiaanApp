@@ -6,13 +6,20 @@
  * activity the way he does — dragging pieces into place — and watches the
  * level move.
  *
- * Each activity runs five ways:
+ * Each activity runs seven ways:
  *   1. assisted off, every answer right                  -> climbs
  *   2. assisted ON, answers before the hand appears      -> climbs
  *   3. assisted ON, waits for the hand every round,
  *      started at level 5                                -> neither climbs nor drops
- *   4. assisted off, a mistake every round               -> drops a level
- *   5. assisted ON, a mistake every round                -> drops a level
+ *   4. assisted off, a mistake every round, demotion
+ *      explicitly turned back on                          -> drops a level
+ *   5. assisted ON, same, demotion turned back on          -> drops a level
+ *   6. assisted off, a mistake every round, the real
+ *      shipped default (neverDemote true)                 -> does NOT drop
+ *
+ * Plus the corner readout (#lvWatermark, src/50-session.js) is checked against
+ * scenario 1: that it counts a block's rounds as he goes, and shows the new
+ * level the moment a level-up actually lands.
  *
  * Written after finding that with assisted mode on (the default) all three
  * games could never move up, and dropped him a level for a block of all-right
@@ -47,6 +54,9 @@ function boot(settings) {
   const { window, errors } = bootApp({
     html,
     localStorage: {
+      // neverDemote deliberately left out unless a scenario passes it — leaving
+      // it out is exactly how a real save file looks before this setting
+      // existed, so it exercises the real DEFAULTS fallback (true) in 00-state.js
       settings: Object.assign({ itemsPerSession: BLOCK, rewardEvery: 50, autoAdvance: true }, settings),
       progress: { sessions: [], perLevel: {}, best: {} },
     },
@@ -165,8 +175,8 @@ async function play(win, kind, rounds, miss, waitForHand) {
   return guard < 5000;
 }
 
-async function scenario(kind, { assisted, startAt = 1, rounds, miss = false, waitForHand = false }) {
-  const { window, errors } = boot({ assistedMode: assisted });
+async function scenario(kind, { assisted, startAt = 1, rounds, miss = false, waitForHand = false, neverDemote }) {
+  const { window, errors } = boot({ assistedMode: assisted, neverDemote });
   await sleep(150);
   const plus = window.document.querySelector(`.lvbtn[data-kind="${kind}"][data-dir="1"]`);
   for (let i = 1; i < startAt; i++) click(window, plus);
@@ -188,10 +198,20 @@ async function scenario(kind, { assisted, startAt = 1, rounds, miss = false, wai
     allErrors.push(...r.errors);
     check(r.finished, `${kind}: the game played through`);
     check(r.level === 2, `${kind}: assisted OFF, every answer right -> moves up (got level ${r.level})`);
+    const wmAfterUp = r.window.document.querySelector("#lvWatermark").textContent;
+    check(/^Level 2 · 0\/3 this block/.test(wmAfterUp),
+      `${kind}: the corner readout shows the new level the moment it moves up (got "${wmAfterUp}")`);
     click(r.window, r.window.document.querySelector("#back"));
     click(r.window, r.window.document.querySelector("#doneHome"));
     check(/Level 2\//.test(r.window.document.querySelector(`#lv-${kind}`).textContent),
       `${kind}: the home card shows the level he climbed to`);
+
+    // readout — mid-block: one round in, before anything has moved
+    r = await scenario(kind, { assisted: false, rounds: 1 });
+    allErrors.push(...r.errors);
+    const wmMid = r.window.document.querySelector("#lvWatermark").textContent;
+    check(/^Level 1 · 1\/3 this block · 0\/2 blocks confirmed$/.test(wmMid),
+      `${kind}: the corner readout counts this block's rounds as he goes (got "${wmMid}")`);
 
     // 2 — assisted ON, answering before the hand shows: climbs just the same
     r = await scenario(kind, { assisted: true, rounds: BLOCK * 2 });
@@ -205,15 +225,23 @@ async function scenario(kind, { assisted, startAt = 1, rounds, miss = false, wai
     check(r.level === 5,
       `${kind}: assisted ON, waits for the hand -> neither up nor dropped (got level ${r.level})`);
 
-    // 4 — assisted off, a mistake every round: drops
+    // 4 — assisted off, a mistake every round, demotion explicitly turned back on
+    r = await scenario(kind, { assisted: false, startAt: 5, rounds: BLOCK, miss: true, neverDemote: false });
+    allErrors.push(...r.errors);
+    check(r.level === 4, `${kind}: assisted OFF, a mistake every round, demotion on -> drops a level (got level ${r.level})`);
+
+    // 5 — assisted ON, same, demotion turned back on: mistakes still count
+    r = await scenario(kind, { assisted: true, startAt: 5, rounds: BLOCK, miss: true, neverDemote: false });
+    allErrors.push(...r.errors);
+    check(r.level === 4, `${kind}: assisted ON, a mistake every round, demotion on -> drops a level (got level ${r.level})`);
+
+    // 6 — the real shipped default: neverDemote left unset, so it falls through
+    // to DEFAULTS.neverDemote = true in 00-state.js. A mistake every round must
+    // NOT drop him, which is the whole point of this feature.
     r = await scenario(kind, { assisted: false, startAt: 5, rounds: BLOCK, miss: true });
     allErrors.push(...r.errors);
-    check(r.level === 4, `${kind}: assisted OFF, a mistake every round -> drops a level (got level ${r.level})`);
-
-    // 5 — assisted ON, a mistake every round: mistakes still count
-    r = await scenario(kind, { assisted: true, startAt: 5, rounds: BLOCK, miss: true });
-    allErrors.push(...r.errors);
-    check(r.level === 4, `${kind}: assisted ON, a mistake every round -> drops a level (got level ${r.level})`);
+    check(r.level === 5,
+      `${kind}: with the real default (never drop a level), a mistake every round does not drop him (got level ${r.level})`);
   }
 
   R.finish(allErrors);

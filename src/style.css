@@ -67,6 +67,16 @@
   #stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(14px,3vh,30px);min-height:0}
   .prompt-line{font-size:clamp(15px,3vw,20px);color:var(--ink-soft);letter-spacing:.5px}
 
+  /* corner readout: current level and how close to the next one. Quiet by
+     default — this is for the parent watching, not something to draw his eye —
+     and it briefly warms up when the level itself just changed. */
+  #lvWatermark{
+    position:absolute;right:12px;bottom:8px;text-align:right;line-height:1.35;
+    font-size:11px;color:var(--ink-soft);opacity:.5;pointer-events:none;
+    transition:opacity .3s ease,color .3s ease;
+  }
+  #lvWatermark.up{opacity:.95;color:var(--good)}
+
   /* sequence strip */
   .seq{display:flex;gap:clamp(6px,1.4vw,14px);flex-wrap:wrap;justify-content:center;align-items:center}
   .tile{

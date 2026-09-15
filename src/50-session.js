@@ -48,7 +48,33 @@ function startSession(id){
   };
   show("#play");
   renderTokens();
+  wmLevel = null;           // fresh session: never flash "level up" on the first read
   nextRound();
+}
+/* ---- level + block-progress readout, for a parent watching ----
+   Reads the exact counters evaluateMastery() itself keeps (src/40-mastery.js),
+   so this can never disagree with when the level actually moves — nothing
+   here decides that, it only reports it. */
+let wmLevel = null;
+function updateLevelWatermark(){
+  const wm = $("#lvWatermark");
+  if(!sess || !wm) return;
+  const act = activityById(sess.kind);
+  const lvl = levelOf(act.id);
+  const p = (progress.perLevel && progress.perLevel[act.id + ":" + lvl]) || {n:0, indep:0, hits:0};
+  const blockSize = S.itemsPerSession;
+  const needed = lvl < bestLevel(act.id) ? 1 : 2;     // familiar ground passes on one good block
+  if(!S.autoAdvance){
+    wm.textContent = "Level " + lvl + " (auto-advance off)";
+  } else {
+    wm.textContent = "Level " + lvl + " · " + p.n + "/" + blockSize + " this block" +
+      (needed > 1 ? " · " + (p.hits||0) + "/" + needed + " blocks confirmed" : "");
+  }
+  if(wmLevel !== null && lvl !== wmLevel){
+    wm.classList.add("up");
+    setTimeout(()=>wm.classList.remove("up"), 1400);
+  }
+  wmLevel = lvl;
 }
 function rewardTarget(){
   const n = S.rewardEvery;
@@ -79,6 +105,7 @@ function nextRound(){
   sess.attempts = 0; sess.asked++; sess.hintShownThisRound = false;
   const act = activityById(sess.kind);
   const stage = $("#stage"); stage.innerHTML = "";
+  updateLevelWatermark();
   act.startRound(levelOf(act.id), roundApi(act, stage));
 }
 function roundApi(act, stage){
@@ -102,6 +129,7 @@ function roundApi(act, stage){
       if(tag) logTagStat(act.id, tag, independent);
       scoreCorrect();
       if(!prompted) evaluateMastery(act.id, independent);   // a prompted round moves nothing
+      updateLevelWatermark();                                // reflect this round's contribution right away
       afterCorrect();
     }
   };

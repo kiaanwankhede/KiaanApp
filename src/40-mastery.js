@@ -8,8 +8,9 @@
    hint, no prior miss) in a block counts as one confirmation; two such blocks
    IN A ROW advance a level — a single lucky block can't push him ahead, but he
    never has to leave and come back for the second confirmation. Any block under
-   50% drops him back immediately; a block that is neither a clear pass nor a
-   clear fail (50–79%) just resets the streak.
+   50% resets the streak; with S.neverDemote (the default) that's all it does,
+   otherwise it also drops him back a level. A block that is neither a clear
+   pass nor a clear fail (50–79%) always just resets the streak, demotion or not.
 
    WARM-UP RULE: the app restarts at Level 1 every launch, so ground he has
    already covered before only needs ONE good block to pass back through —
@@ -37,7 +38,7 @@ function evaluateMastery(id, independent){
   if(p.n >= blockSize){
     const rate = p.indep / p.n;
     if(rate < 0.5 && curLevel > 1){
-      setLevelOf(id, curLevel - 1);
+      if(!S.neverDemote) setLevelOf(id, curLevel - 1);
       p = {n:0,indep:0,hits:0};
     } else if(rate >= 0.8){
       p.hits = (p.hits||0) + 1;

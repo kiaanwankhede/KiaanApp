@@ -68,7 +68,10 @@ async function openSettings(){
     "8 of 10 INDEPENDENT correct (no hint, no prior miss) in a block moves up — but only once that's happened in two " +
     "blocks in a row, so one lucky block can't push him ahead. Levels he has already reached before only need one " +
     "good block, so warming back up from Level 1 each session stays quick. Under 5 of 10 in one block moves down " +
-    "right away. Play keeps going the whole time; nothing pauses for this."));
+    "right away, unless \"Never drop a level\" below is on. Play keeps going the whole time; nothing pauses for this."));
+  g3.appendChild(row("Never drop a level", toggle(S.neverDemote, v=>{S.neverDemote=v;save();}),
+    "On by default. A rough block (under 5 of 10) just resets the count toward the next level up instead of moving " +
+    "him back down a level."));
   b.appendChild(g3);
 
   /* animals */

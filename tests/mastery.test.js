@@ -12,8 +12,8 @@ const ACTIVITIES = [{ id:"pattern", maxLevel:()=>40 }, { id:"sort", maxLevel:()=
 function activityById(id){ return ACTIVITIES.find(a=>a.id===id); }
 function levelOf(id){ return (S.levels && S.levels[id]) || 1; }
 function setLevelOf(id,v){ (S.levels || (S.levels={}))[id] = v; }
-function reset(best, itemsPerSession){
-  S = { autoAdvance:true, itemsPerSession: itemsPerSession||10, levels:{} };
+function reset(best, itemsPerSession, neverDemote){
+  S = { autoAdvance:true, itemsPerSession: itemsPerSession||10, levels:{}, neverDemote: !!neverDemote };
   progress = { perLevel:{}, best: best ? {pattern:best} : {} };
 }
 `;
@@ -81,6 +81,15 @@ check(lvl() === 12, "at his frontier one block is no longer enough");
 block(9);
 check(lvl() === 13, "the frontier needs two consecutive blocks, then advances");
 check(M.progress.best.pattern === 13, "his best level moves up with him");
+
+// --- neverDemote: the streak still resets, the level just doesn't drop ---
+M.reset(null, 10, true);
+M.S.levels.pattern = 5;
+block(3);
+check(lvl() === 5, "with neverDemote on, a block under 50% does not drop the level");
+check(M.progress.perLevel["pattern:5"].n === 0, "but the confirmation streak still resets, same as a demoting miss");
+block(9); block(9);
+check(lvl() === 6, "and climbing back out still needs two full good blocks, exactly as if it had demoted");
 
 // --- each activity has its own ladder height ---
 M.reset();

@@ -197,6 +197,21 @@ no miss before the hand appeared → *independent*, counts toward moving up;
 answered with no miss after the hand appeared → *prompted*, counts neither way;
 any miss → counts against.
 
+**`S.neverDemote` is on by default.** A rough block still resets the streak —
+so the two-good-blocks-in-a-row climb still has to restart — it just no longer
+drops him back a level while it does. Toggle is in Settings ("Never drop a
+level"); the arithmetic itself is untouched, `evaluateMastery()` only skips the
+one line that calls `setLevelOf(id, curLevel - 1)`.
+
+**The corner readout during PLAY (`#lvWatermark`) is a report, not a decision.**
+`updateLevelWatermark()` in 50-session.js reads the exact counters
+`evaluateMastery()` keeps in `progress.perLevel` and echoes them back — current
+level, how many rounds into this block, how many blocks confirmed. It never
+computes mastery itself, so it can't drift out of sync with when a level
+actually moves. Quiet by design (low opacity, `pointer-events:none`) — it's
+there for a parent watching over his shoulder, not something the flow is built
+to draw a 4-year-old's eye to.
+
 **The assisted hand waits 3 seconds before it appears** (`HINT_DELAY_MS`), and
 touching anything first keeps it away for that round. That gap is his chance to
 answer alone — the standard time-delay way of fading a prompt. Both halves of
