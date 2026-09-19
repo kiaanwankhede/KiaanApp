@@ -6,25 +6,23 @@
 const REWARD_ANIMALS = [
   ["DOG","🐶"],["CAT","🐱"],["COW","🐮"],["LION","🦁"],["TIGER","🐯"],["ELEPHANT","🐘"],
   ["MONKEY","🐵"],["ZEBRA","🦓"],["GIRAFFE","🦒"],["HORSE","🐴"],["PIG","🐷"],["SHEEP","🐑"],
-  ["RABBIT","🐰"],["BEAR","🐻"],["PANDA","🐼"],["FOX","🦊"],["FROG","🐸"],["FISH","🐠"],
-  ["DUCK","🦆"],["OWL","🦉"],["PENGUIN","🐧"],["PARROT","🦜"],["SNAKE","🐍"],["TURTLE","🐢"],
-  ["CRAB","🦀"],["OCTOPUS","🐙"],["BUTTERFLY","🦋"],["BEE","🐝"],["WHALE","🐳"],["DOLPHIN","🐬"],
+  ["RABBIT","🐰"],["BEAR","🐻"],["PANDA","🐼"],["FOX","🦊"],["FROG","🐸"],
+  ["DUCK","🦆"],["OWL","🦉"],["PENGUIN","🐧"],["PARROT","🦜"],["SNAKE","🐍"],
+  ["BUTTERFLY","🦋"],["BEE","🐝"],
   ["CAMEL","🐫"],["DEER","🦌"],["GOAT","🐐"],["HEN","🐔"],["SNAIL","🐌"],["KOALA","🐨"],
-  ["WOLF","🐺"],["HIPPO","🦛"],["RHINO","🦏"],["PEACOCK","🦚"]
+  ["WOLF","🐺"],["HIPPOPOTAMUS","🦛"],["RHINOCEROS","🦏"],["PEACOCK","🦚"]
+];
+/* Everything that lives in water, kept together rather than scattered through
+   the animals — easier to review, and it reads as a set when he sees them. */
+const REWARD_SEA = [
+  ["FISH","🐠"],["CRAB","🦀"],["OCTOPUS","🐙"],["WHALE","🐳"],["DOLPHIN","🐬"],["TURTLE","🐢"],
+  ["SHARK","🦈"],["CROCODILE","🐊"],["PRAWN","🦐"],["LOBSTER","🦞"],["SQUID","🦑"],
+  ["SEAL","🦭"],["OTTER","🦦"],["SHELL","🐚"]
 ];
 const REWARD_FRUITS = [
   ["APPLE","🍎"],["BANANA","🍌"],["GRAPES","🍇"],["ORANGE","🍊"],["STRAWBERRY","🍓"],
   ["WATERMELON","🍉"],["PINEAPPLE","🍍"],["KIWI","🥝"],["MANGO","🥭"],["PEACH","🍑"],
   ["CHERRY","🍒"],["LEMON","🍋"],["COCONUT","🥥"],["PEAR","🍐"]
-];
-const REWARD_VEHICLES = [
-  ["CAR","🚗"],["BUS","🚌"],["BICYCLE","🚲"],["TRAIN","🚂"],["TAXI","🚕"],["TRUCK","🚚"],
-  ["AIRPLANE","✈️"],["HELICOPTER","🚁"],["BOAT","⛵"],["SHIP","🚢"],["SCOOTER","🛵"],
-  ["TRACTOR","🚜"],["AMBULANCE","🚑"]
-];
-const REWARD_HOUSE = [
-  ["CHAIR","🪑"],["BED","🛏️"],["SOFA","🛋️"],["DOOR","🚪"],["WINDOW","🪟"],["LAMP","💡"],
-  ["CLOCK","🕰️"],["TV","📺"],["MIRROR","🪞"],["BATHTUB","🛁"],["BASKET","🧺"],["KEY","🔑"]
 ];
 /* Vegetables — note this is the REWARD pool, nothing to do with the sorting
    themes: CLAUDE.md keeps vegetables out of category SORTING because "food"
@@ -36,9 +34,21 @@ const REWARD_VEGETABLES = [
   ["GARLIC","🧄"],["MUSHROOM","🍄"],["CHILLI","🌶️"],["PUMPKIN","🎃"]
 ];
 const REWARD_FOOD = [
-  ["PIZZA","🍕"],["BREAD","🍞"],["CHEESE","🧀"],["EGG","🥚"],["BISCUIT","🍪"],
-  ["ICE CREAM","🍦"],["CAKE","🍰"],["MILK","🥛"],["RICE","🍚"],["CHOCOLATE","🍫"],
-  ["JUICE","🥤"],["HONEY","🍯"]
+  ["PIZZA","🍕"],["BREAD","🍞"],["CHEESE","🧀"],["EGG","🥚"],["COOKIE","🍪"],
+  ["ICE CREAM","🍦"],["CAKE","🍰"],["MILK","🥛"],["CHOCOLATE","🍫"]
+];
+const REWARD_VEHICLES = [
+  ["CAR","🚗"],["BUS","🚌"],["BICYCLE","🚲"],["TRAIN","🚂"],["TAXI","🚕"],["TRUCK","🚚"],
+  ["AIRPLANE","✈️"],["HELICOPTER","🚁"],["BOAT","⛵"],["SHIP","🚢"],["SCOOTER","🛵"],
+  ["TRACTOR","🚜"],["AMBULANCE","🚑"]
+];
+/* things he sees around him here, rather than the generic set */
+const REWARD_FAMILIAR = [
+  ["AUTO","🛺"],["FIRE ENGINE","🚒"],["DIYA","🪔"]
+];
+const REWARD_HOUSE = [
+  ["CHAIR","🪑"],["BED","🛏️"],["SOFA","🛋️"],["DOOR","🚪"],["WINDOW","🪟"],["LAMP","💡"],
+  ["CLOCK","🕰️"],["TV","📺"],["MIRROR","🪞"],["BATHTUB","🛁"],["BASKET","🧺"],["KEY","🔑"]
 ];
 const REWARD_NATURE = [
   ["SUN","☀️"],["MOON","🌙"],["STAR","⭐"],["RAINBOW","🌈"],["CLOUD","☁️"],
@@ -46,8 +56,8 @@ const REWARD_NATURE = [
   ["FIRE","🔥"],["WATER","💧"]
 ];
 const REWARD_PLAY = [
-  ["BALL","⚽"],["BASKETBALL","🏀"],["BALLOON","🎈"],["KITE","🪁"],["TEDDY","🧸"],
-  ["PAINT","🎨"],["DICE","🎲"],["ROCKET","🚀"],["GIFT","🎁"],["DRUM","🥁"],
+  ["BALL","⚽"],["BALLOON","🎈"],["KITE","🪁"],["TEDDY","🧸"],
+  ["DICE","🎲"],["ROCKET","🚀"],["GIFT","🎁"],["DRUM","🥁"],
   ["GUITAR","🎸"],["CRICKET","🏏"]
 ];
 const REWARD_CLOTHES = [
@@ -58,15 +68,11 @@ const REWARD_BODY = [
   ["EYE","👁️"],["EAR","👂"],["NOSE","👃"],["MOUTH","👄"],["HAND","🖐️"],
   ["FOOT","🦶"],["TOOTH","🦷"]
 ];
-/* things he sees around him here, rather than the generic set */
-const REWARD_FAMILIAR = [
-  ["AUTO","🛺"],["POLICE CAR","🚓"],["FIRE ENGINE","🚒"],["DIYA","🪔"]
-];
 
 /* Every group goes in here, and rewards.test.js checks the total against the
    sum of the groups — so a new group that someone forgets to add is caught. */
 const EMOJI_PACK = [
-  ...REWARD_ANIMALS, ...REWARD_FRUITS, ...REWARD_VEGETABLES, ...REWARD_FOOD,
+  ...REWARD_ANIMALS, ...REWARD_SEA, ...REWARD_FRUITS, ...REWARD_VEGETABLES, ...REWARD_FOOD,
   ...REWARD_VEHICLES, ...REWARD_FAMILIAR, ...REWARD_HOUSE, ...REWARD_NATURE,
   ...REWARD_PLAY, ...REWARD_CLOTHES, ...REWARD_BODY
 ];

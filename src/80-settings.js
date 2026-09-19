@@ -39,8 +39,8 @@ async function openSettings(){
   g1.appendChild(row("Schedule", seg([{v:"fixed",t:"Fixed"},{v:"variable",t:"Variable"}], S.schedule, v=>{S.schedule=v;save();}),
     "Fixed is predictable. Variable randomises around the number above and holds interest longer."));
   g1.appendChild(row("Use built-in reward pictures", toggle(S.useEmojiPack, v=>{S.useEmojiPack=v;save();bag=[];}),
-    "150 pictures: animals, fruits, vegetables, food, vehicles, things around the house, nature, toys, clothes " +
-    "and body parts. Turn off once you have added enough of your own photos. " +
+    "152 pictures: animals, sea creatures, fruits, vegetables, food, vehicles, things around the house, nature, " +
+    "toys, clothes and body parts. Turn off once you have added enough of your own photos. " +
     "For something specific like a real fan or fridge, a photo you add below will always beat an emoji."));
   b.appendChild(g1);
 

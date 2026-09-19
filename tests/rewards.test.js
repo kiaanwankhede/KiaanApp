@@ -14,7 +14,7 @@
  */
 const { pureContext, Runner } = require("./_harness");
 
-const GROUPS = ["REWARD_ANIMALS","REWARD_FRUITS","REWARD_VEGETABLES","REWARD_FOOD",
+const GROUPS = ["REWARD_ANIMALS","REWARD_SEA","REWARD_FRUITS","REWARD_VEGETABLES","REWARD_FOOD",
   "REWARD_VEHICLES","REWARD_FAMILIAR","REWARD_HOUSE","REWARD_NATURE","REWARD_PLAY",
   "REWARD_CLOTHES","REWARD_BODY"];
 const X = pureContext(["30-rewards.js"], GROUPS.concat(["EMOJI_PACK"]));
@@ -23,7 +23,7 @@ const R = new Runner("rewards");
 const check = (c, m) => R.check(c, m);
 
 const pack = X.EMOJI_PACK;
-check(pack.length === 150, "the reward pool holds 150 pictures (got " + pack.length + ")");
+check(pack.length === 152, "the reward pool holds 152 pictures (got " + pack.length + ")");
 
 const groupTotal = GROUPS.reduce((n, g) => n + X[g].length, 0);
 check(groupTotal === pack.length,
@@ -54,5 +54,13 @@ check(longOnes.length === 0, "every picture is a single emoji, not a sequence: "
 const vegWords = X.REWARD_VEGETABLES.map((v) => v[0]);
 check(vegWords.indexOf("CARROT") !== -1 && X.REWARD_VEGETABLES.length >= 10,
   "vegetables are in, with a decent spread (" + X.REWARD_VEGETABLES.length + ")");
+check(X.REWARD_SEA.length >= 12, "sea creatures have a group of their own (" + X.REWARD_SEA.length + ")");
+
+/* names asked for in full rather than shortened, and none of the ones taken out
+   should be able to creep back in */
+["HIPPOPOTAMUS","RHINOCEROS","COOKIE"].forEach((w) =>
+  check(words.indexOf(w) !== -1, w + " is in the pool under that name"));
+["HIPPO","RHINO","BISCUIT","RICE","JUICE","HONEY","POLICE CAR","BASKETBALL","PAINT"].forEach((w) =>
+  check(words.indexOf(w) === -1, w + " is not in the pool"));
 
 R.finish();
