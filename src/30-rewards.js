@@ -121,13 +121,24 @@ async function loadCustom(){
   CUSTOM = recs.map(r=>({id:r.id, word:r.word, url:URL.createObjectURL(r.blob)}));
 }
 
+/* The built-in pictures are real photographs — one per word in EMOJI_PACK,
+   inlined by tools/build.js from src/photos/. A photograph of the actual thing
+   beats a cartoon of it for learning what the word points at, which is the
+   whole job of this screen; the emoji stays as the fallback for any word whose
+   photo is missing, and is still what the activities themselves draw with. */
+function pictureFor(pair){
+  const url = (typeof PHOTO_PACK !== "undefined") && PHOTO_PACK[pair[0]];
+  return url ? {type:"img", word:pair[0], url:url}
+             : {type:"em",  word:pair[0], em:pair[1]};
+}
+
 /* shuffle bag so the same animal doesn't repeat */
 let bag = [];
 function nextAnimal(){
   if(!bag.length){
     const pool = [];
     CUSTOM.forEach(c=>pool.push({type:"img", word:c.word, url:c.url}));
-    if(S.useEmojiPack || !CUSTOM.length) EMOJI_PACK.forEach(p=>pool.push({type:"em", word:p[0], em:p[1]}));
+    if(S.useEmojiPack || !CUSTOM.length) EMOJI_PACK.forEach(p=>pool.push(pictureFor(p)));
     if(!pool.length) pool.push({type:"em", word:"STAR", em:"⭐"});
     for(let i=pool.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [pool[i],pool[j]]=[pool[j],pool[i]]; }
     bag = pool;

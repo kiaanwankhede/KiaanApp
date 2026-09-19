@@ -37,6 +37,7 @@ src/
   00-state.js      settings + progress in localStorage; per-activity accessors
   20-stimuli.js    shared visual vocabulary: colours, shapes, themes, renderers
   30-rewards.js    reward picture + spelling, shuffle bag, IndexedDB photo store
+  photos/          152 reward photographs (.webp) + credits.json; inlined at build
   35-drag.js       pointer-events drag and drop
   40-mastery.js    level up / level down, activity-agnostic
   50-session.js    the play loop AND THE ACTIVITY CONTRACT — read this first
@@ -244,6 +245,34 @@ default here does nothing on its own for a tablet that already has a save:
 when the saved value is still the old default, so a parent's own choice is
 never overwritten.
 
+**The reward screen shows photographs; the activities draw with emoji.** These
+are two different jobs and they want two different pictures. An activity needs
+shapes that fill their boxes evenly and differ on exactly the attribute being
+tested, which is what emoji and drawn shapes are good at — photographs there
+would wreck the size and category rules above. The reward screen is doing the
+opposite job: attaching a word to the thing in the world it names, where a photo
+of an actual dog carries over to the dog in the street and a cartoon of one
+doesn't. So `src/photos/` holds one photograph per word in `EMOJI_PACK`, and the
+emoji stays as the fallback for any word whose photo is missing.
+
+Two things about that pack are load-bearing. **The file name is the word** —
+`dog.webp` is DOG, `ice-cream.webp` is ICE CREAM — the same rule Settings uses
+for photos a parent adds, so there is one convention, not two. And **the photos
+are inlined as data URIs**, not served beside the page: the offline file has to
+stay one self-contained thing, and inlining for the hosted build too means the
+service worker has a single document to cache and can't end up serving the page
+from one build with the pictures from another.
+
+**A reward photo has to be one clear thing, or it teaches the wrong word.**
+Sourcing these automatically does not work — an encyclopedia's lead image for
+SUN is a NASA photosphere, for SHELL a beach seen from fifty metres, and each
+would attach the word to the wrong thing. Every picture in the pack was chosen
+by eye from several candidates against one bar: a single subject, plainly lit,
+recognisable to a 4-year-old at a glance. Hold anything added later to it.
+Attribution is not optional either — most are CC BY / CC BY-SA, so
+`PHOTO-CREDITS.md` (regenerate with `node tools/make-credits.js`) is a licence
+condition and has to travel with the pictures.
+
 **Silent.** No audio, ever. Visual feedback only.
 
 ---
@@ -258,8 +287,9 @@ so it launches with no browser UI.
 
 ## Things deliberately not done
 
-- **No real photos bundled.** Sourcing them hit licensing and quality problems.
-  Parents add their own via Settings → they go to IndexedDB, not the file.
+- ~~**No real photos bundled.**~~ Done as of the photo pack — see the reward
+  rule above. Parents still add their own via Settings → those go to IndexedDB,
+  not the file, and still win over a bundled picture for the same word.
 - **No APK yet.** `dist/` is now hosted as a real PWA (installs from the
   browser, updates itself) — see DEPLOY.md. An APK is still just PWABuilder
   pointed at that URL, or Capacitor, whenever a store listing is wanted.

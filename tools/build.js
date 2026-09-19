@@ -21,6 +21,7 @@ const ROOT = path.resolve(__dirname, "..");
 const SRC = path.join(ROOT, "src");
 const DIST = path.join(ROOT, "dist");
 const ICONS = path.join(ROOT, "icons");
+const PHOTOS = path.join(SRC, "photos");
 
 // Order matters: `const` has no hoisting, so anything evaluated at load time
 // must come after what it names. Activities are defined before the registry
@@ -233,10 +234,46 @@ self.addEventListener("fetch", (event) => {
 
 const read = (rel) => fs.readFileSync(path.join(SRC, rel), "utf8");
 
+/**
+ * The reward photographs, inlined as data URIs.
+ *
+ * They go INTO the page rather than beside it on purpose: the offline file has
+ * to stay one self-contained thing with zero external references, and inlining
+ * for the hosted build too means the service worker still has exactly one
+ * document to cache and cannot end up with the page from one build and the
+ * pictures from another.
+ *
+ * File name is the word — dog.webp is DOG, "ice-cream.webp" is ICE CREAM —
+ * the same rule Settings uses for photos a parent adds from the tablet.
+ */
+function buildPhotoPack() {
+  if (!fs.existsSync(PHOTOS)) return { js: "const PHOTO_PACK = {};\n", count: 0, bytes: 0 };
+  const entries = fs.readdirSync(PHOTOS).filter((f) => f.endsWith(".webp")).sort();
+  let bytes = 0;
+  const pairs = entries.map((f) => {
+    const buf = fs.readFileSync(path.join(PHOTOS, f));
+    bytes += buf.length;
+    const word = f.replace(/\.webp$/, "").replace(/-/g, " ").toUpperCase();
+    return JSON.stringify(word) + ':"data:image/webp;base64,' + buf.toString("base64") + '"';
+  });
+  return {
+    js: "const PHOTO_PACK = {\n" + pairs.join(",\n") + "\n};\n",
+    count: entries.length,
+    bytes,
+  };
+}
+
 function buildBody() {
   const files = [...SHELL_BEFORE, ...ACTIVITY_FILES, ...SHELL_AFTER];
+  const photos = buildPhotoPack();
   const js = files
-    .map((rel) => `\n/* ---------- src/${rel} ---------- */\n${read(rel).trimEnd()}`)
+    .map((rel) => {
+      const chunk = `\n/* ---------- src/${rel} ---------- */\n${read(rel).trimEnd()}`;
+      // ahead of the rewards module, which reads PHOTO_PACK when filling its bag
+      return rel === "30-rewards.js"
+        ? `\n/* ---------- src/photos/*.webp (${photos.count}) ---------- */\n${photos.js.trimEnd()}\n${chunk}`
+        : chunk;
+    })
     .join("\n");
 
   return (
@@ -283,15 +320,17 @@ function main() {
   }
 
   const n = ACTIVITY_FILES.length;
+  const photos = buildPhotoPack();
   console.log(
     `built dist/app.html (${body.length} bytes) from ` +
-    `${SHELL_BEFORE.length + SHELL_AFTER.length} shell files + ${n} activit${n === 1 ? "y" : "ies"}`
+    `${SHELL_BEFORE.length + SHELL_AFTER.length} shell files + ${n} activit${n === 1 ? "y" : "ies"} + ` +
+    `${photos.count} photos (${Math.round(photos.bytes / 1024)} KB)`
   );
   console.log(`built dist/index.html + manifest.webmanifest + sw.js (cache ${hosted.buildId})`);
 }
 
 module.exports = {
-  buildBody, SRC, ROOT, ICONS, ACTIVITY_FILES, SHELL_BEFORE, SHELL_AFTER, read,
+  buildBody, buildPhotoPack, SRC, ROOT, ICONS, PHOTOS, ACTIVITY_FILES, SHELL_BEFORE, SHELL_AFTER, read,
   MANIFEST_INFO, buildManifest, computeBuildId, buildServiceWorker, buildHosted,
 };
 
