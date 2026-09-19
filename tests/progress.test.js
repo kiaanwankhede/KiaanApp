@@ -75,6 +75,23 @@ function boot(settings) {
   return { window, errors };
 }
 
+
+/* The corner readout renders as stars, not text: one star per answer in the
+   block, gold for the ones he got on his own. */
+function readWatermark(win) {
+  const wm = win.document.querySelector("#lvWatermark");
+  if (!wm) return null;
+  const q = (sel) => wm.querySelectorAll(sel).length;
+  return {
+    level: (wm.querySelector(".lvw-level") || {}).textContent,
+    stars: q(".lvw-star"),
+    gold: q(".lvw-star.on"),
+    grey: q(".lvw-star.dim"),
+    blocks: q(".lvw-blocks span"),
+    blocksDone: q(".lvw-blocks .on"),
+  };
+}
+
 const click = (win, el) => el.dispatchEvent(new win.Event("click", { bubbles: true }));
 function pointer(win, type, x, y) {
   const e = new win.Event(type, { bubbles: true, cancelable: true });
@@ -198,9 +215,10 @@ async function scenario(kind, { assisted, startAt = 1, rounds, miss = false, wai
     allErrors.push(...r.errors);
     check(r.finished, `${kind}: the game played through`);
     check(r.level === 2, `${kind}: assisted OFF, every answer right -> moves up (got level ${r.level})`);
-    const wmAfterUp = r.window.document.querySelector("#lvWatermark").textContent;
-    check(/^Level 2 · 0\/3 this block/.test(wmAfterUp),
-      `${kind}: the corner readout shows the new level the moment it moves up (got "${wmAfterUp}")`);
+    const wmUp = readWatermark(r.window);
+    check(wmUp && wmUp.level === "Level 2" && wmUp.gold === 0 && wmUp.stars === BLOCK,
+      `${kind}: the readout shows the new level with a fresh row of stars the moment it moves up` +
+        ` (got ${JSON.stringify(wmUp)})`);
     click(r.window, r.window.document.querySelector("#back"));
     click(r.window, r.window.document.querySelector("#doneHome"));
     check(/Level 2\//.test(r.window.document.querySelector(`#lv-${kind}`).textContent),
@@ -209,9 +227,11 @@ async function scenario(kind, { assisted, startAt = 1, rounds, miss = false, wai
     // readout — mid-block: one round in, before anything has moved
     r = await scenario(kind, { assisted: false, rounds: 1 });
     allErrors.push(...r.errors);
-    const wmMid = r.window.document.querySelector("#lvWatermark").textContent;
-    check(/^Level 1 · 1\/3 this block · 0\/2 blocks confirmed$/.test(wmMid),
-      `${kind}: the corner readout counts this block's rounds as he goes (got "${wmMid}")`);
+    const wmMid = readWatermark(r.window);
+    check(wmMid && wmMid.level === "Level 1" && wmMid.stars === BLOCK && wmMid.gold === 1 && wmMid.grey === 0,
+      `${kind}: one round in, one star of ${BLOCK} is gold (got ${JSON.stringify(wmMid)})`);
+    check(wmMid && wmMid.blocks === 2 && wmMid.blocksDone === 0,
+      `${kind}: and two block dots wait to be filled before the level moves (got ${JSON.stringify(wmMid)})`);
 
     // 2 — assisted ON, answering before the hand shows: climbs just the same
     r = await scenario(kind, { assisted: true, rounds: BLOCK * 2 });

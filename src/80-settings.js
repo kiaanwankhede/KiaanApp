@@ -47,7 +47,8 @@ async function openSettings(){
   const g2 = group("Session");
   g2.appendChild(row("Answers per confirmation block", stepper(S.itemsPerSession,4,30,v=>{S.itemsPerSession=v;save();}),
     "Play never stops on its own — he keeps going until you tap back. This just sets how many correct answers " +
-    "make up one \"block\" for levelling: two good blocks in a row move him up."));
+    "make up one \"block\" for levelling: two good blocks in a row move him up, and the stars in the corner " +
+    "during play show how far through a block he is."));
   g2.appendChild(row("Dim wrong choices after", stepper(S.dimAfter,1,5,v=>{S.dimAfter=v;save();}), "Misses before the wrong options fade out."));
   g2.appendChild(row("Show the answer after", stepper(S.showAfter,1,6,v=>{S.showAfter=v;save();}), "Misses before the correct target is highlighted."));
   g2.appendChild(row("Assisted mode", toggle(S.assistedMode, v=>{S.assistedMode=v;save();renderHomeAssist();}),
@@ -65,12 +66,13 @@ async function openSettings(){
       act.settingsHint(levelOf(act.id))));
   });
   g3.appendChild(row("Move levels automatically", toggle(S.autoAdvance,v=>{S.autoAdvance=v;save();}),
-    "8 of 10 INDEPENDENT correct (no hint, no prior miss) in a block moves up — but only once that's happened in two " +
-    "blocks in a row, so one lucky block can't push him ahead. Levels he has already reached before only need one " +
-    "good block, so warming back up from Level 1 each session stays quick. Under 5 of 10 in one block moves down " +
-    "right away, unless \"Never drop a level\" below is on. Play keeps going the whole time; nothing pauses for this."));
+    Math.ceil(0.8*S.itemsPerSession) + " of " + S.itemsPerSession + " INDEPENDENT correct (no hint, no prior miss) " +
+    "in a block moves up — but only once that's happened in two blocks in a row, so one lucky block can't push him " +
+    "ahead. Levels he has already reached before only need one good block, which is what makes the warm-up at the " +
+    "start of each session quick. Under half a block moves down right away, unless \"Never drop a level\" below is " +
+    "on. Play keeps going the whole time; nothing pauses for this."));
   g3.appendChild(row("Never drop a level", toggle(S.neverDemote, v=>{S.neverDemote=v;save();}),
-    "On by default. A rough block (under 5 of 10) just resets the count toward the next level up instead of moving " +
+    "On by default. A rough block (under half of it independent) just resets the count toward the next level up instead of moving " +
     "him back down a level."));
   b.appendChild(g3);
 

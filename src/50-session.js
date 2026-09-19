@@ -64,17 +64,37 @@ function updateLevelWatermark(){
   const p = (progress.perLevel && progress.perLevel[act.id + ":" + lvl]) || {n:0, indep:0, hits:0};
   const blockSize = S.itemsPerSession;
   const needed = lvl < bestLevel(act.id) ? 1 : 2;     // familiar ground passes on one good block
-  if(!S.autoAdvance){
-    wm.textContent = "Level " + lvl + " (auto-advance off)";
-  } else {
-    wm.textContent = "Level " + lvl + " · " + p.n + "/" + blockSize + " this block" +
-      (needed > 1 ? " · " + (p.hits||0) + "/" + needed + " blocks confirmed" : "");
-  }
+
+  wm.innerHTML = "";
+  wm.appendChild(el("span","lvw-level","Level " + lvl));
+  // the level-change flash is bookkept before any early return, so toggling
+  // auto-advance off and on again can't leave a stale level behind and flash
   if(wmLevel !== null && lvl !== wmLevel){
     wm.classList.add("up");
     setTimeout(()=>wm.classList.remove("up"), 1400);
   }
   wmLevel = lvl;
+  if(!S.autoAdvance) return;                          // nothing is climbing; a bare level is the whole story
+
+  /* One star per answer in the block. Gold means he got it on his own, which
+     is what actually counts toward moving up; grey means it counted but he
+     needed the hand or had a miss first. Hollow is still to come. The order is
+     gold-then-grey rather than the order they happened — these are the running
+     totals evaluateMastery() keeps, not a timeline. */
+  const stars = el("span","lvw-stars");
+  for(let i=0;i<blockSize;i++){
+    const cls = i < p.indep ? "lvw-star on" : (i < p.n ? "lvw-star dim" : "lvw-star");
+    stars.appendChild(el("span", cls, i < p.n ? "★" : "☆"));
+  }
+  wm.appendChild(stars);
+
+  // and one dot per full block still needed before the level moves
+  if(needed > 1){
+    const blocks = el("span","lvw-blocks");
+    for(let i=0;i<needed;i++) blocks.appendChild(el("span", i < (p.hits||0) ? "on" : "", "●"));
+    wm.appendChild(blocks);
+  }
+
 }
 function rewardTarget(){
   const n = S.rewardEvery;

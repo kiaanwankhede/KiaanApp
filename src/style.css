@@ -81,6 +81,16 @@
     transition:color .3s ease,background .3s ease;
   }
   #lvWatermark.up{color:var(--good);background:#fff}
+  #lvWatermark .lvw-level{font-weight:700}
+  /* one star per answer in the block: gold = done on his own, grey = counted
+     but he needed help or had a miss, hollow = still to come */
+  #lvWatermark .lvw-stars{margin-left:7px;letter-spacing:1.5px;font-size:15px;vertical-align:-1px}
+  #lvWatermark .lvw-star{color:#d5dde8}
+  #lvWatermark .lvw-star.dim{color:#aab6c6}
+  #lvWatermark .lvw-star.on{color:#f0b429}
+  /* one dot per full block still needed before the level itself moves */
+  #lvWatermark .lvw-blocks{margin-left:7px;font-size:8px;letter-spacing:3px;vertical-align:2px;color:#d5dde8}
+  #lvWatermark .lvw-blocks .on{color:var(--good)}
 
   /* sequence strip */
   .seq{display:flex;gap:clamp(6px,1.4vw,14px);flex-wrap:wrap;justify-content:center;align-items:center}

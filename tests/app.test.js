@@ -1,14 +1,18 @@
 /* The built page in a browser: it boots, both activities play, the parent gate
-   works, levels reset on every launch, and the tablet lockdown behaves. */
+   works, a launch picks up below his best, and the tablet lockdown behaves. */
 const { bootApp, Runner, registeredActivities } = require("./_harness");
 const R = new Runner("app");
 const check = (c, m) => R.check(c, m);
 
 const { window, errors, spies } = bootApp({
-  // a previous sitting that had climbed to pattern 12 / sort 4
+  // a previous sitting that had climbed to pattern 12 / sort 4, and a best of
+  // 12 / 4 recorded by auto-advance along the way
   localStorage: {
     settings: { levels: { pattern: 12, sort: 4 }, autoAdvance: true, itemsPerSession: 10 },
-    progress: { sessions: [], perLevel: { "pattern:12": { n: 9, indep: 9, hits: 1 } } },
+    progress: {
+      sessions: [], perLevel: { "pattern:12": { n: 9, indep: 9, hits: 1 } },
+      best: { pattern: 12, sort: 4 },
+    },
   },
 });
 const doc = window.document;
@@ -22,9 +26,10 @@ setTimeout(() => {
   check(doc.querySelectorAll(".card").length === registeredActivities().length,
     "every registered activity has a home card");
 
-  // ---- every launch starts at level 1, whatever was saved ----
-  check(/Level 1\//.test($("#lv-pattern").textContent), "Patterns starts at level 1 despite level 12 being saved");
-  check(/Level 1\//.test($("#lv-sort").textContent), "Sorting starts at level 1 despite level 4 being saved");
+  // ---- a launch picks up two below his best, not where he left off ----
+  check($("#lv-pattern").textContent.includes("Level 10/"),
+    "Patterns starts two below its best of 12, not at the 12 he was mid-climb on");
+  check($("#lv-sort").textContent.includes("Level 2/"), "Sorting starts two below its best of 4");
 
   // ---- level stepper ----
   const before = $("#lv-pattern").textContent;

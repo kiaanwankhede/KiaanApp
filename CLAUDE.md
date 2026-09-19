@@ -228,8 +228,21 @@ hundreds of answers a session.
 **Play never stops.** There is no "done for today" and no session cap. It runs
 until a parent taps back.
 
-**Every launch starts at Level 1.** Auto-advance climbs during a sitting; it
-does not carry over. A parent can jump straight to a level with the steppers.
+**Every launch picks up two levels below his best** (`WARM_UP_DROP` in
+00-state.js), floored at Level 1 — not at Level 1 every time, and not at
+whatever level he happened to be mid-climb on when the tablet was closed.
+Starting from 1 every session cost hundreds of answers to re-climb; starting
+cold at his frontier skips a warm-up he benefits from. The mastery rule already
+clears ground he has passed before in one good block instead of two, so those
+two levels go quickly. Only auto-advance records a best — moving the stepper by
+hand doesn't, because that's a parent's judgement, not something he has shown.
+
+**A confirmation block is 5 answers, not 10** (`itemsPerSession`). Changing a
+default here does nothing on its own for a tablet that already has a save:
+`save()` writes every key of `S`, so the old value keeps winning. That's what
+`SETTINGS_REV` is for — bump it and migrate explicitly in `load()`, and only
+when the saved value is still the old default, so a parent's own choice is
+never overwritten.
 
 **Silent.** No audio, ever. Visual feedback only.
 
