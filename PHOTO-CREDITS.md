@@ -1,10 +1,10 @@
 # Photo credits
 
-The 152 reward photographs in `src/photos/` come from [Wikimedia Commons](https://commons.wikimedia.org). They are cropped square and re-encoded as WebP; nothing else about them is changed.
+The 153 reward photographs in `src/photos/` come from [Wikimedia Commons](https://commons.wikimedia.org). They are cropped square and re-encoded as WebP; nothing else about them is changed.
 
 Most are licensed CC BY or CC BY-SA, so **attribution is a condition of use, not a courtesy** — this file is that attribution, and it must travel with any copy of the app that includes the pictures. Each row links to the source page, where the full licence terms live.
 
-Licences in use: CC BY-SA 4.0 (52), CC BY-SA 3.0 (33), CC BY 2.0 (14), Public domain (14), CC0 (11), CC BY-SA 2.0 (10), CC BY 4.0 (4), CC BY 3.0 (3), GFDL 1.2 (3), CC BY-SA 2.5 (3), CC BY 2.5 (2), Copyrighted free use (1), CC BY-SA 2.0 de (1), CC BY-SA 3.0 us (1).
+Licences in use: CC BY-SA 4.0 (53), CC BY-SA 3.0 (33), CC BY 2.0 (14), Public domain (14), CC0 (11), CC BY-SA 2.0 (10), CC BY 4.0 (4), CC BY 3.0 (3), GFDL 1.2 (3), CC BY-SA 2.5 (3), CC BY 2.5 (2), Copyrighted free use (1), CC BY-SA 2.0 de (1), CC BY-SA 3.0 us (1).
 
 Regenerate with `node tools/make-credits.js`.
 
@@ -39,6 +39,7 @@ Regenerate with `node tools/make-credits.js`.
 | CARROT | `carrot.webp` | Collegestudent33 | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Carrot-fb.jpg) |
 | CAT | `cat.webp` | Karin Langner-Bahmann , upload von Martin Bahmann | CC BY-SA 3.0 | [Commons](https://commons.wikimedia.org/wiki/File:Siam_lilacpoint.jpg) |
 | CHAIR | `chair.webp` | Dakota Jackson Inc. | CC BY-SA 3.0 | [Commons](https://commons.wikimedia.org/wiki/File:Library_Chair_dakota_jackson.jpg) |
+| CHAKLI | `chakli.webp` | PilotChicago | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Chakli_in_a_bowl.jpg) |
 | CHEESE | `cheese.webp` | Renee Comet (Photographer) | Public domain | [Commons](https://commons.wikimedia.org/wiki/File:Cheese.jpg) |
 | CHERRY | `cherry.webp` | Benjamint444 , edited by Fir0002 | CC BY-SA 3.0 | [Commons](https://commons.wikimedia.org/wiki/File:Cherry_Stella444.jpg) |
 | CHILLI | `chilli.webp` | Takeaway | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Madame_Jeanette_and_other_chillies.jpg) |

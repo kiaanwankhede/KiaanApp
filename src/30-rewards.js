@@ -42,9 +42,15 @@ const REWARD_VEHICLES = [
   ["AIRPLANE","✈️"],["HELICOPTER","🚁"],["BOAT","⛵"],["SHIP","🚢"],["SCOOTER","🛵"],
   ["TRACTOR","🚜"],["AMBULANCE","🚑"]
 ];
-/* things he sees around him here, rather than the generic set */
+/* things he sees around him here, rather than the generic set.
+
+   CHAKLI has no emoji and deliberately isn't given a stand-in: the nearest
+   ones (a pretzel, a rice cracker) are different foods, and putting one of
+   those under the word would teach exactly the wrong pairing. A null picture
+   means "photo or nothing" — pictureFor drops the entry from the pool rather
+   than show something wrong, and photos.test.js pins that the photo is there. */
 const REWARD_FAMILIAR = [
-  ["AUTO","🛺"],["FIRE ENGINE","🚒"],["DIYA","🪔"]
+  ["AUTO","🛺"],["FIRE ENGINE","🚒"],["DIYA","🪔"],["CHAKLI",null]
 ];
 const REWARD_HOUSE = [
   ["CHAIR","🪑"],["BED","🛏️"],["SOFA","🛋️"],["DOOR","🚪"],["WINDOW","🪟"],["LAMP","💡"],
@@ -125,11 +131,16 @@ async function loadCustom(){
    inlined by tools/build.js from src/photos/. A photograph of the actual thing
    beats a cartoon of it for learning what the word points at, which is the
    whole job of this screen; the emoji stays as the fallback for any word whose
-   photo is missing, and is still what the activities themselves draw with. */
+   photo is missing, and is still what the activities themselves draw with.
+
+   A word whose emoji is null has no acceptable stand-in, so if its photo is
+   missing too it is left out of the pool entirely — better to skip a reward
+   than to put the wrong picture under a word he is learning. */
 function pictureFor(pair){
   const url = (typeof PHOTO_PACK !== "undefined") && PHOTO_PACK[pair[0]];
-  return url ? {type:"img", word:pair[0], url:url}
-             : {type:"em",  word:pair[0], em:pair[1]};
+  if(url)      return {type:"img", word:pair[0], url:url};
+  if(pair[1])  return {type:"em",  word:pair[0], em:pair[1]};
+  return null;
 }
 
 /* shuffle bag so the same animal doesn't repeat */
@@ -138,7 +149,9 @@ function nextAnimal(){
   if(!bag.length){
     const pool = [];
     CUSTOM.forEach(c=>pool.push({type:"img", word:c.word, url:c.url}));
-    if(S.useEmojiPack || !CUSTOM.length) EMOJI_PACK.forEach(p=>pool.push(pictureFor(p)));
+    if(S.useEmojiPack || !CUSTOM.length) EMOJI_PACK.forEach(p=>{
+      const pic = pictureFor(p); if(pic) pool.push(pic);
+    });
     if(!pool.length) pool.push({type:"em", word:"STAR", em:"⭐"});
     for(let i=pool.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [pool[i],pool[j]]=[pool[j],pool[i]]; }
     bag = pool;

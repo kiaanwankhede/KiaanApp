@@ -37,7 +37,7 @@ src/
   00-state.js      settings + progress in localStorage; per-activity accessors
   20-stimuli.js    shared visual vocabulary: colours, shapes, themes, renderers
   30-rewards.js    reward picture + spelling, shuffle bag, IndexedDB photo store
-  photos/          152 reward photographs (.webp) + credits.json; inlined at build
+  photos/          153 reward photographs (.webp) + credits.json; inlined at build
   35-drag.js       pointer-events drag and drop
   40-mastery.js    level up / level down, activity-agnostic
   50-session.js    the play loop AND THE ACTIVITY CONTRACT — read this first

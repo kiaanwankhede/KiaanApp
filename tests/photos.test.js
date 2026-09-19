@@ -26,6 +26,9 @@ const check = (c, m) => R.check(c, m);
 
 const { EMOJI_PACK } = pureContext(["30-rewards.js"], ["EMOJI_PACK"]);
 const words = EMOJI_PACK.map((p) => p[0]);
+// A word with no emoji has no acceptable stand-in, so its photo isn't just
+// preferred — it's the only thing that can ever be shown for it.
+const photoOnly = EMOJI_PACK.filter((p) => !p[1]).map((p) => p[0]);
 
 const files = fs.readdirSync(PHOTOS).filter((f) => f.endsWith(".webp"));
 const wordFromFile = (f) => f.replace(/\.webp$/, "").replace(/-/g, " ").toUpperCase();
@@ -41,6 +44,12 @@ check(missing.length === 0, "every reward word has a photo" +
 const orphans = haveWords.filter((w) => words.indexOf(w) === -1);
 check(orphans.length === 0, "no photo without a reward word" +
   (orphans.length ? " — stray " + orphans.join(", ") : ""));
+
+check(photoOnly.length > 0, "at least one word is photo-only (CHAKLI has no emoji)");
+const strandedWords = photoOnly.filter((w) => haveWords.indexOf(w) === -1);
+check(strandedWords.length === 0,
+  "every photo-only word still has its photo, or it could never be shown" +
+  (strandedWords.length ? " — stranded: " + strandedWords.join(", ") : ""));
 
 /* Every file must really be a WebP, and small enough that 152 of them inlined
    still leave a page a tablet opens quickly. */

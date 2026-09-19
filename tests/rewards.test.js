@@ -23,7 +23,7 @@ const R = new Runner("rewards");
 const check = (c, m) => R.check(c, m);
 
 const pack = X.EMOJI_PACK;
-check(pack.length === 152, "the reward pool holds 152 pictures (got " + pack.length + ")");
+check(pack.length === 153, "the reward pool holds 153 pictures (got " + pack.length + ")");
 
 const groupTotal = GROUPS.reduce((n, g) => n + X[g].length, 0);
 check(groupTotal === pack.length,
@@ -31,7 +31,11 @@ check(groupTotal === pack.length,
 
 GROUPS.forEach((g) => check(X[g].length > 0, g + " has pictures in it"));
 
-const words = pack.map((p) => p[0]), pics = pack.map((p) => p[1]);
+const words = pack.map((p) => p[0]);
+// CHAKLI has no emoji on purpose — see 30-rewards.js. Entries like that are
+// photo-or-nothing, so the emoji checks below only apply where one exists.
+const withEmoji = pack.filter((p) => p[1]);
+const pics = withEmoji.map((p) => p[1]);
 check(new Set(words).size === words.length,
   "no word appears twice (" + (words.length - new Set(words).size) + " repeats)");
 check(new Set(pics).size === pics.length,
@@ -42,13 +46,13 @@ const badWord = words.filter((w) => !WORD_OK.test(w) || w.length > 18);
 check(badWord.length === 0, "every word is plain capitals he could read out: " + JSON.stringify(badWord));
 
 const ZWJ = String.fromCharCode(0x200D);
-const joined = pack.filter(([, e]) => e.indexOf(ZWJ) !== -1).map(([w]) => w);
+const joined = withEmoji.filter(([, e]) => e.indexOf(ZWJ) !== -1).map(([w]) => w);
 check(joined.length === 0,
   "no picture is a joined-up emoji, which would show as a box on an older tablet: " + JSON.stringify(joined));
 
 // a plain picture is one or two code points (the second being a variation
 // selector); anything longer is a sequence that may not render
-const longOnes = pack.filter(([, e]) => Array.from(e).length > 2).map(([w]) => w);
+const longOnes = withEmoji.filter(([, e]) => Array.from(e).length > 2).map(([w]) => w);
 check(longOnes.length === 0, "every picture is a single emoji, not a sequence: " + JSON.stringify(longOnes));
 
 const vegWords = X.REWARD_VEGETABLES.map((v) => v[0]);
@@ -58,7 +62,7 @@ check(X.REWARD_SEA.length >= 12, "sea creatures have a group of their own (" + X
 
 /* names asked for in full rather than shortened, and none of the ones taken out
    should be able to creep back in */
-["HIPPOPOTAMUS","RHINOCEROS","COOKIE"].forEach((w) =>
+["HIPPOPOTAMUS","RHINOCEROS","COOKIE","CHAKLI"].forEach((w) =>
   check(words.indexOf(w) !== -1, w + " is in the pool under that name"));
 ["HIPPO","RHINO","BISCUIT","RICE","JUICE","HONEY","POLICE CAR","BASKETBALL","PAINT"].forEach((w) =>
   check(words.indexOf(w) === -1, w + " is not in the pool"));

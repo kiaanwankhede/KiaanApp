@@ -39,7 +39,7 @@ async function openSettings(){
   g1.appendChild(row("Schedule", seg([{v:"fixed",t:"Fixed"},{v:"variable",t:"Variable"}], S.schedule, v=>{S.schedule=v;save();}),
     "Fixed is predictable. Variable randomises around the number above and holds interest longer."));
   g1.appendChild(row("Use built-in reward pictures", toggle(S.useEmojiPack, v=>{S.useEmojiPack=v;save();bag=[];}),
-    "152 real photographs: animals, sea creatures, fruits, vegetables, food, vehicles, things around the " +
+    "153 real photographs: animals, sea creatures, fruits, vegetables, food, vehicles, things around the " +
     "house, nature, toys, clothes and body parts. Photographs rather than cartoons on purpose — this screen " +
     "is where a word gets attached to the thing it names, and a picture of an actual dog carries over to the " +
     "dog in the street in a way a drawing of one doesn't. Turn off once you have added enough of your own. " +
