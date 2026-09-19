@@ -26,7 +26,50 @@ const REWARD_HOUSE = [
   ["CHAIR","🪑"],["BED","🛏️"],["SOFA","🛋️"],["DOOR","🚪"],["WINDOW","🪟"],["LAMP","💡"],
   ["CLOCK","🕰️"],["TV","📺"],["MIRROR","🪞"],["BATHTUB","🛁"],["BASKET","🧺"],["KEY","🔑"]
 ];
-const EMOJI_PACK = [...REWARD_ANIMALS, ...REWARD_FRUITS, ...REWARD_VEHICLES, ...REWARD_HOUSE];
+/* Vegetables — note this is the REWARD pool, nothing to do with the sorting
+   themes: CLAUDE.md keeps vegetables out of category SORTING because "food"
+   splitting into fruit and vegetable is a blurry call for a 4-year-old. As a
+   reward picture with its name under it there's no such judgement to make. */
+const REWARD_VEGETABLES = [
+  ["CARROT","🥕"],["BROCCOLI","🥦"],["CORN","🌽"],["TOMATO","🍅"],["POTATO","🥔"],
+  ["ONION","🧅"],["CUCUMBER","🥒"],["CAPSICUM","🫑"],["BRINJAL","🍆"],["CABBAGE","🥬"],
+  ["GARLIC","🧄"],["MUSHROOM","🍄"],["CHILLI","🌶️"],["PUMPKIN","🎃"]
+];
+const REWARD_FOOD = [
+  ["PIZZA","🍕"],["BREAD","🍞"],["CHEESE","🧀"],["EGG","🥚"],["BISCUIT","🍪"],
+  ["ICE CREAM","🍦"],["CAKE","🍰"],["MILK","🥛"],["RICE","🍚"],["CHOCOLATE","🍫"],
+  ["JUICE","🥤"],["HONEY","🍯"]
+];
+const REWARD_NATURE = [
+  ["SUN","☀️"],["MOON","🌙"],["STAR","⭐"],["RAINBOW","🌈"],["CLOUD","☁️"],
+  ["RAIN","🌧️"],["SNOW","❄️"],["TREE","🌳"],["FLOWER","🌸"],["LEAF","🍃"],
+  ["FIRE","🔥"],["WATER","💧"]
+];
+const REWARD_PLAY = [
+  ["BALL","⚽"],["BASKETBALL","🏀"],["BALLOON","🎈"],["KITE","🪁"],["TEDDY","🧸"],
+  ["PAINT","🎨"],["DICE","🎲"],["ROCKET","🚀"],["GIFT","🎁"],["DRUM","🥁"],
+  ["GUITAR","🎸"],["CRICKET","🏏"]
+];
+const REWARD_CLOTHES = [
+  ["SHIRT","👕"],["PANTS","👖"],["SOCKS","🧦"],["SHOES","👟"],["CAP","🧢"],
+  ["COAT","🧥"],["GLOVES","🧤"],["DRESS","👗"],["BAG","🎒"],["SHORTS","🩳"]
+];
+const REWARD_BODY = [
+  ["EYE","👁️"],["EAR","👂"],["NOSE","👃"],["MOUTH","👄"],["HAND","🖐️"],
+  ["FOOT","🦶"],["TOOTH","🦷"]
+];
+/* things he sees around him here, rather than the generic set */
+const REWARD_FAMILIAR = [
+  ["AUTO","🛺"],["POLICE CAR","🚓"],["FIRE ENGINE","🚒"],["DIYA","🪔"]
+];
+
+/* Every group goes in here, and rewards.test.js checks the total against the
+   sum of the groups — so a new group that someone forgets to add is caught. */
+const EMOJI_PACK = [
+  ...REWARD_ANIMALS, ...REWARD_FRUITS, ...REWARD_VEGETABLES, ...REWARD_FOOD,
+  ...REWARD_VEHICLES, ...REWARD_FAMILIAR, ...REWARD_HOUSE, ...REWARD_NATURE,
+  ...REWARD_PLAY, ...REWARD_CLOTHES, ...REWARD_BODY
+];
 
 /* tiny IndexedDB for photos added from the tablet */
 const DB_NAME="lrapp", STORE="animals";
