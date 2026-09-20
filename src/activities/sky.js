@@ -103,7 +103,7 @@ function buildSky(lv){
 
 const SKY = {
   id: "sky",
-  name: "2 Jan 2025  -  Emergent writing slanting lines",
+  name: "Emergent writing slanting lines",
   section: "Toondemy Games",
   date: "2025-01-02",
   icon: "☀️🪁",

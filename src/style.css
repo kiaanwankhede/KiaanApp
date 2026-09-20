@@ -33,6 +33,9 @@
   #homeCards{display:flex;flex-direction:column;align-items:center;gap:28px}
   .cards{display:flex;gap:22px;flex-wrap:wrap;justify-content:center}
   .section-heading{font-size:14px;font-weight:bold;letter-spacing:1.5px;color:var(--ink-soft);text-transform:uppercase}
+  /* a date groups the cards right under it; pulled closer to its own row than
+     the 28px section rhythm, so it visually belongs to that row, not the gap */
+  .date-heading{font-size:13px;font-weight:bold;color:var(--ink-soft);margin:-14px 0 -14px}
   .card{
     width:min(42vw,230px);aspect-ratio:1/1.05;background:var(--card);border-radius:var(--radius);
     box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;

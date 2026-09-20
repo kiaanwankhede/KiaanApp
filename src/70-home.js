@@ -5,9 +5,19 @@
    An activity may optionally declare `section` (a heading it groups under —
    omit it and the activity renders in the plain, unheaded row at the top,
    exactly as before this existed) and `date` ("YYYY-MM-DD", so it sorts
-   correctly as text). Inside a section, cards always sort oldest date first;
-   activities with no section are never sorted by date, only by registry order.
+   correctly as text). Inside a section, cards are grouped one more level
+   down by that exact date — several games on the same date share one date
+   heading and sit side by side under it — and the date groups themselves
+   always sort oldest first. Activities with no section are never grouped or
+   sorted by date, only listed in registry order, exactly as before any of
+   this existed.
    ============================================================== */
+function formatSectionDate(iso){
+  if(!iso) return "";
+  const [y, m, d] = iso.split("-").map(Number);
+  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return d + " " + MONTHS[m - 1] + " " + y;
+}
 function buildCard(act){
   const card = el("div","card"); card.id = "card-" + act.id;
   card.appendChild(el("div","ic", act.icon));
@@ -31,6 +41,23 @@ function buildCard(act){
   });
   return card;
 }
+/* Pure grouping, kept free of the DOM so it can be tested on its own —
+   activities in registry order for the plain row and within a date group;
+   sections in order of first appearance; date groups oldest first. */
+function groupHomeSections(activities){
+  const plain = activities.filter(act => !act.section);
+  const sections = [];
+  activities.forEach(act=>{
+    if(!act.section) return;
+    let sec = sections.find(s => s.name === act.section);
+    if(!sec){ sec = { name: act.section, dates: [] }; sections.push(sec); }
+    let grp = sec.dates.find(g => g.date === act.date);
+    if(!grp){ grp = { date: act.date, acts: [] }; sec.dates.push(grp); }
+    grp.acts.push(act);
+  });
+  sections.forEach(sec => sec.dates.sort((a, b)=> (a.date || "").localeCompare(b.date || "")));
+  return { plain, sections };
+}
 function buildHomeCards(){
   const wrap = $("#homeCards");
   wrap.innerHTML = "";
@@ -41,19 +68,14 @@ function buildHomeCards(){
     wrap.appendChild(row);
   };
 
-  cardRow(ACTIVITIES.filter(act => !act.section));
-
-  const sections = [];
-  ACTIVITIES.forEach(act=>{
-    if(!act.section) return;
-    let sec = sections.find(s => s.name === act.section);
-    if(!sec){ sec = { name: act.section, acts: [] }; sections.push(sec); }
-    sec.acts.push(act);
-  });
+  const { plain, sections } = groupHomeSections(ACTIVITIES);
+  cardRow(plain);
   sections.forEach(sec=>{
-    sec.acts.sort((a, b)=> (a.date || "").localeCompare(b.date || ""));
     wrap.appendChild(el("div","section-heading", sec.name));
-    cardRow(sec.acts);
+    sec.dates.forEach(grp=>{
+      wrap.appendChild(el("div","date-heading", formatSectionDate(grp.date)));
+      cardRow(grp.acts);
+    });
   });
 }
 function changeLevel(id, dir){

@@ -31,6 +31,36 @@ T.SKY_LEVELS.forEach((e, i) => {
   check(["road", "dotted", "dots"].includes(e.guide), `level ${i + 1} (${e.name}): a real guide type`);
 });
 
+/* ---- date grouping on the home screen ----
+   Two throwaway activities sharing Sky's own section: one lands on the same
+   date as Sky (must share Sky's date heading and sit beside it, not get one
+   of its own), one lands later (its date heading must sort after Sky's). */
+const groupingHtml = (()=>{
+  const fs = require("fs");
+  const path = require("path");
+  const build = require("../tools/build");
+  const FAKES = `
+const FAKE_SAME_DATE = { id:"fakesame", name:"Same day", icon:"🎈", maxLevel:()=>1,
+  levelLabel:()=>"", settingsHint:()=>"", section:"Toondemy Games", date:"2025-01-02",
+  startRound(level, api){ api.stage.appendChild(el("div","prompt-line","x")); } };
+const FAKE_LATER = { id:"fakelater", name:"Later day", icon:"🎉", maxLevel:()=>1,
+  levelLabel:()=>"", settingsHint:()=>"", section:"Toondemy Games", date:"2025-01-09",
+  startRound(level, api){ api.stage.appendChild(el("div","prompt-line","x")); } };
+`;
+  const tmp = path.join(build.SRC, "activities", "__sky_test_fakes.js");
+  fs.writeFileSync(tmp, FAKES);
+  try {
+    build.ACTIVITY_FILES.push("activities/__sky_test_fakes.js");
+    return build.buildBody().replace(
+      /const ACTIVITIES\s*=\s*\[([^\]]*)\];/,
+      "const ACTIVITIES = [$1, FAKE_SAME_DATE, FAKE_LATER ];"
+    );
+  } finally {
+    fs.unlinkSync(tmp);
+  }
+})();
+const { window: gwin } = bootApp({ html: groupingHtml });
+
 /* ---- the page ---- */
 const { window, errors } = bootApp();
 const doc = window.document;
@@ -50,8 +80,20 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 (async () => {
   await sleep(150);
-  check(!!$("#card-sky") && /Emergent writing slanting lines/.test($("#card-sky").textContent), "Sky gets its dated home card");
-  check(/Toondemy Games/.test(doc.querySelector(".section-heading").textContent), "and sits under the Toondemy Games section heading");
+
+  const gdoc = gwin.document;
+  const dateHeads = Array.from(gdoc.querySelectorAll(".date-heading")).map((h) => h.textContent);
+  check(dateHeads.filter((t) => t === "2 Jan 2025").length === 1,
+    "two games on the same date share exactly one date heading, not one each");
+  const jan2Row = gdoc.querySelector(".date-heading") && gdoc.querySelector(".date-heading").nextElementSibling;
+  check(!!jan2Row && jan2Row.querySelector("#card-sky") && jan2Row.querySelector("#card-fakesame"),
+    "and both their cards sit in that one row");
+  check(dateHeads.indexOf("2 Jan 2025") < dateHeads.indexOf("9 Jan 2025"),
+    "date headings sort oldest first");
+
+  check(!!$("#card-sky") && /Emergent writing slanting lines/.test($("#card-sky").textContent), "Sky gets its own home card");
+  check(/Toondemy Games/.test(doc.querySelector(".section-heading").textContent), "sits under the Toondemy Games section heading");
+  check(/2 Jan 2025/.test(doc.querySelector(".date-heading").textContent), "and its own date heading, since the date isn't in the card title");
   click(doc.querySelector('.playbtn[data-kind="sky"]'));
   const board = $("#stage .trace-board");
   check(!!board, "a tracing board is drawn, same as Trace");
