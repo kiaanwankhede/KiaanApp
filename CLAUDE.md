@@ -1,7 +1,8 @@
 # Think & Sort
 
-A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Five
-activities so far — Patterns, Sorting, Order, How many and Trace — built as
+A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Six
+activities so far — Patterns, Sorting, Order, How many, Trace and Match —
+built as
 **one offline HTML file** that runs from a tablet with no network, no install
 and no dependencies.
 
@@ -47,6 +48,7 @@ src/
     seriate.js     "finish the steps" — size ordering, 26 levels in 6 stages
     count.js       "how many?" — match amounts, 21 levels in 6 stages, up to 10
     trace.js       "follow the line" — strokes, then numbers 0–9, then smaller, 30 levels
+    match.js       "what goes with it?" — association pairs, 22 levels
   60-registry.js   the list of activities. Adding one is a line here.
   70-home.js       home screen, generated from the registry
   75-gate.js       passcode gate for Settings

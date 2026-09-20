@@ -128,6 +128,7 @@ const SOLVE = {
     return { right: [node, right], wrong: wrong && [node, wrong] };
   },
   count(win) { return SOLVE.pattern(win); },     // same shape: one slot, cards to pick from
+  match(win) { return SOLVE.pattern(win); },     // same shape: one slot, cards to pick from
   seriate(win) {
     const d = win.document, T = win.__tns;
     const row = d.querySelector("#stage .steps");
@@ -205,7 +206,7 @@ async function scenario(kind, { assisted, startAt = 1, rounds, miss = false, wai
 
 (async () => {
   const kinds = registeredActivities().map((c) =>
-    ({ PATTERNS: "pattern", SORTING: "sort", SERIATION: "seriate", COUNTING: "count", TRACING: "trace" }[c]));
+    ({ PATTERNS: "pattern", SORTING: "sort", SERIATION: "seriate", COUNTING: "count", TRACING: "trace", MATCHING: "match" }[c]));
   check(kinds.every(Boolean), "every registered activity has a solver here");
   const allErrors = [];
 

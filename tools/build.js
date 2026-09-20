@@ -42,6 +42,7 @@ const ACTIVITY_FILES = [
   "activities/seriate.js",
   "activities/count.js",
   "activities/trace.js",
+  "activities/match.js",
 ];
 
 const SHELL_AFTER = [
