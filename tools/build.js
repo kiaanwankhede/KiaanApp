@@ -32,6 +32,7 @@ const SHELL_BEFORE = [
   "20-stimuli.js",
   "30-rewards.js",
   "35-drag.js",
+  "36-trace-engine.js",
   "40-mastery.js",
   "50-session.js",
 ];
@@ -43,6 +44,7 @@ const ACTIVITY_FILES = [
   "activities/count.js",
   "activities/trace.js",
   "activities/match.js",
+  "activities/sky.js",
 ];
 
 const SHELL_AFTER = [

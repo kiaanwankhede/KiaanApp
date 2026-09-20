@@ -1,31 +1,80 @@
 /* ============================ HOME ============================
    The home screen is built from the registry, so an activity appears here
    purely by being in ACTIVITIES — no markup to add, no handler to wire.
+
+   An activity may optionally declare `section` (a heading it groups under —
+   omit it and the activity renders in the plain, unheaded row at the top,
+   exactly as before this existed) and `date` ("YYYY-MM-DD", so it sorts
+   correctly as text). Inside a section, cards are grouped one more level
+   down by that exact date — several games on the same date share one date
+   heading and sit side by side under it — and the date groups themselves
+   always sort oldest first. Activities with no section are never grouped or
+   sorted by date, only listed in registry order, exactly as before any of
+   this existed.
    ============================================================== */
+function formatSectionDate(iso){
+  if(!iso) return "";
+  const [y, m, d] = iso.split("-").map(Number);
+  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return d + " " + MONTHS[m - 1] + " " + y;
+}
+function buildCard(act){
+  const card = el("div","card"); card.id = "card-" + act.id;
+  card.appendChild(el("div","ic", act.icon));
+  card.appendChild(el("div","nm", act.name));
+
+  const row = el("div","lvrow");
+  const minus = el("button","lvbtn","−"); minus.dataset.kind = act.id; minus.dataset.dir = "-1";
+  const label = el("div","lv"); label.id = "lv-" + act.id;
+  const plus  = el("button","lvbtn","+"); plus.dataset.kind = act.id; plus.dataset.dir = "1";
+  row.append(minus, label, plus);
+  card.appendChild(row);
+
+  const play = el("button","playbtn","▶ PLAY"); play.dataset.kind = act.id;
+  card.appendChild(play);
+
+  minus.addEventListener("click", ()=>changeLevel(act.id, -1));
+  plus .addEventListener("click", ()=>changeLevel(act.id,  1));
+  play .addEventListener("click", ()=>{
+    goFullscreen(); keepAwake();   // PLAY is a real user gesture, so both are allowed here
+    if(isEnabled(act.id)) startSession(act.id);
+  });
+  return card;
+}
+/* Pure grouping, kept free of the DOM so it can be tested on its own —
+   activities in registry order for the plain row and within a date group;
+   sections in order of first appearance; date groups oldest first. */
+function groupHomeSections(activities){
+  const plain = activities.filter(act => !act.section);
+  const sections = [];
+  activities.forEach(act=>{
+    if(!act.section) return;
+    let sec = sections.find(s => s.name === act.section);
+    if(!sec){ sec = { name: act.section, dates: [] }; sections.push(sec); }
+    let grp = sec.dates.find(g => g.date === act.date);
+    if(!grp){ grp = { date: act.date, acts: [] }; sec.dates.push(grp); }
+    grp.acts.push(act);
+  });
+  sections.forEach(sec => sec.dates.sort((a, b)=> (a.date || "").localeCompare(b.date || "")));
+  return { plain, sections };
+}
 function buildHomeCards(){
-  const wrap = $(".cards");
+  const wrap = $("#homeCards");
   wrap.innerHTML = "";
-  ACTIVITIES.forEach(act=>{
-    const card = el("div","card"); card.id = "card-" + act.id;
-    card.appendChild(el("div","ic", act.icon));
-    card.appendChild(el("div","nm", act.name));
 
-    const row = el("div","lvrow");
-    const minus = el("button","lvbtn","−"); minus.dataset.kind = act.id; minus.dataset.dir = "-1";
-    const label = el("div","lv"); label.id = "lv-" + act.id;
-    const plus  = el("button","lvbtn","+"); plus.dataset.kind = act.id; plus.dataset.dir = "1";
-    row.append(minus, label, plus);
-    card.appendChild(row);
+  const cardRow = (acts)=>{
+    const row = el("div","cards");
+    acts.forEach(act => row.appendChild(buildCard(act)));
+    wrap.appendChild(row);
+  };
 
-    const play = el("button","playbtn","▶ PLAY"); play.dataset.kind = act.id;
-    card.appendChild(play);
-    wrap.appendChild(card);
-
-    minus.addEventListener("click", ()=>changeLevel(act.id, -1));
-    plus .addEventListener("click", ()=>changeLevel(act.id,  1));
-    play .addEventListener("click", ()=>{
-      goFullscreen(); keepAwake();   // PLAY is a real user gesture, so both are allowed here
-      if(isEnabled(act.id)) startSession(act.id);
+  const { plain, sections } = groupHomeSections(ACTIVITIES);
+  cardRow(plain);
+  sections.forEach(sec=>{
+    wrap.appendChild(el("div","section-heading", sec.name));
+    sec.dates.forEach(grp=>{
+      wrap.appendChild(el("div","date-heading", formatSectionDate(grp.date)));
+      cardRow(grp.acts);
     });
   });
 }

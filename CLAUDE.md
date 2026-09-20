@@ -1,7 +1,7 @@
 # Think & Sort
 
-A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Six
-activities so far — Patterns, Sorting, Order, How many, Trace and Match —
+A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Seven
+activities so far — Patterns, Sorting, Order, How many, Trace, Match and Sky —
 built as
 **one offline HTML file** that runs from a tablet with no network, no install
 and no dependencies.
@@ -40,6 +40,9 @@ src/
   30-rewards.js    reward picture + spelling, shuffle bag, IndexedDB photo store
   photos/          153 reward photographs (.webp) + credits.json; inlined at build
   35-drag.js       pointer-events drag and drop
+  36-trace-engine.js  shared "follow the line" engine: traceTracker (the judge, DOM-free
+                   and tested on its own), the board and the pointer wiring. Trace and
+                   Sky are both thin catalogues of shapes drawn on top of this.
   40-mastery.js    level up / level down, activity-agnostic
   50-session.js    the play loop AND THE ACTIVITY CONTRACT — read this first
   activities/
@@ -49,6 +52,8 @@ src/
     count.js       "how many?" — match amounts, 21 levels in 6 stages, up to 10
     trace.js       "follow the line" — strokes, then numbers 0–9, then smaller, 30 levels
     match.js       "what goes with it?" — association pairs, 22 levels
+    sky.js         "follow the line" again, dressed as reaching a real thing (sun to a
+                   sprout, kite to kite, plane to plane) instead of a plain star — 18 levels
   60-registry.js   the list of activities. Adding one is a line here.
   70-home.js       home screen, generated from the registry
   75-gate.js       passcode gate for Settings
@@ -193,6 +198,19 @@ game silently dead. The judging lives in `traceTracker()`, free of the DOM, and
 `tests/trace.test.js` runs it on every shape at every tolerance — including
 that jumping ahead, cutting across a circle or going round the wrong way never
 finishes a shape.
+
+**Sky is Trace's engine wearing different art, on purpose, and it stops there.**
+A commercial tracing app teaching this identical skill — a line from one thing
+to another — wraps every finished line in a mascot animation, a confetti burst
+and a full-screen flash. Sky exists to show the same real thing (sunshine
+reaching a sprout, one kite's string reaching another) is just as engaging
+without any of that: no character, no burst, no sound, nothing full-screen —
+the only difference from Trace is a small still picture waiting at the end
+instead of a star, and one more waiting at the start purely for flavour,
+sat behind the green dot so it's never mistaken for something to touch. Never
+add a rewarding animation, sound, or celebratory flash to it, here or to
+Trace — that's the whole point of building it this way instead of just
+skinning the other app.
 
 **Mastery: 80% independent across two consecutive blocks moves up; under 50%
 in one block moves down.** Each round counts one of three ways: answered with
