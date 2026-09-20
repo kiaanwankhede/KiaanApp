@@ -188,6 +188,12 @@
     opacity:0;transform:translateY(10px);transition:all .22s ease;
   }
   #rwWord span.in{opacity:1;transform:none}
+  #rwActions{display:flex;gap:28px;margin-top:6px}
+  #rwActions button{
+    width:76px;height:76px;border-radius:50%;background:var(--card);box-shadow:var(--shadow);
+    display:grid;place-items:center;font-size:34px;
+  }
+  #rwActions button:active{transform:scale(.92)}
   .bigbtn{
     background:var(--accent);color:#fff;font-size:20px;font-weight:bold;letter-spacing:2px;
     padding:16px 44px;border-radius:999px;box-shadow:var(--shadow);

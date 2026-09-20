@@ -161,9 +161,10 @@ function nextAnimal(){
 
 let rewardTimer = null;
 function showReward(){
+  const act = activityById(sess.kind);
   const a = nextAnimal();
   sess.sinceReward = 0;
-  sess.target = rewardTarget();
+  sess.target = act.oneShot ? 1 : rewardTarget();
   const img = $("#rwImg"); img.innerHTML = "";
   if(a.type === "img"){ const i = el("img"); i.src = a.url; img.appendChild(i); }
   else { img.appendChild(el("div","em", a.em)); }
@@ -175,7 +176,10 @@ function showReward(){
   });
   show("#reward");
   clearTimeout(rewardTimer);
-  rewardTimer = setTimeout(continueFromReward, 5000); // shows for 5s, then carries straight on — no tap needed
+  // a one-shot game's round WAS the whole game — nothing to carry on into, so
+  // the reward waits for a tap (Repeat / Next) instead of auto-continuing
+  if(act.oneShot) showRewardActions(act);
+  else { hideRewardActions(); rewardTimer = setTimeout(continueFromReward, 5000); }
 }
 function continueFromReward(){
   clearTimeout(rewardTimer); rewardTimer = null;
@@ -183,4 +187,15 @@ function continueFromReward(){
   renderTokens();
   if(!sess.roundDone) return;                       // resume a half-finished sorting round
   nextRound();
+}
+function showRewardActions(act){
+  const wrap = $("#rwActions");
+  wrap.hidden = false;
+  $("#rwRepeat").onclick = ()=> startSession(act.id);
+  const next = nextInSection(act);
+  $("#rwNext").hidden = !next;
+  if(next) $("#rwNext").onclick = ()=> startSession(next.id);
+}
+function hideRewardActions(){
+  $("#rwActions").hidden = true;
 }

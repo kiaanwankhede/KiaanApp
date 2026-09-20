@@ -30,6 +30,12 @@
   <section id="reward" class="screen">
     <div id="rwImg"></div>
     <div id="rwWord"></div>
+    <!-- shown only for a one-shot game (Toondemy): its round was the whole
+         game, so the reward waits here for a tap instead of auto-continuing -->
+    <div id="rwActions" hidden>
+      <button id="rwRepeat" aria-label="Play again">🔁</button>
+      <button id="rwNext" aria-label="Next game">⏭️</button>
+    </div>
   </section>
 
   <!-- DONE -->
