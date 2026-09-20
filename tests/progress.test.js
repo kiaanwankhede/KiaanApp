@@ -171,7 +171,7 @@ async function play(win, kind, rounds, miss, waitForHand) {
   while (T.sess && T.sess.correct < rounds && guard++ < 5000) {
     await sleep(3);
     if (!win.document.querySelector("#play").classList.contains("on")) continue;   // reward screen
-    if (kind === "trace") {
+    if (kind === "trace" || kind === "sky") {
       const board = win.document.querySelector("#stage .trace-board");
       if (!board || !board._trace || !board.querySelector(".trace-start")) continue;
       if (waitForHand && !T.sess.hintShownThisRound) continue;
@@ -206,7 +206,7 @@ async function scenario(kind, { assisted, startAt = 1, rounds, miss = false, wai
 
 (async () => {
   const kinds = registeredActivities().map((c) =>
-    ({ PATTERNS: "pattern", SORTING: "sort", SERIATION: "seriate", COUNTING: "count", TRACING: "trace", MATCHING: "match" }[c]));
+    ({ PATTERNS: "pattern", SORTING: "sort", SERIATION: "seriate", COUNTING: "count", TRACING: "trace", MATCHING: "match", SKY: "sky" }[c]));
   check(kinds.every(Boolean), "every registered activity has a solver here");
   const allErrors = [];
 

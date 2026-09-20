@@ -10,7 +10,7 @@
  *   - wandering well off the line is one miss per wander, never more
  *   - progress never goes backwards */
 const { pureContext, bootApp, Runner } = require("./_harness");
-const T = pureContext(["20-stimuli.js", "activities/trace.js"],
+const T = pureContext(["20-stimuli.js", "36-trace-engine.js", "activities/trace.js"],
   ["TRACE_LEVELS", "traceEntry", "TRACE_SHAPES", "TRACE_TOL", "traceTracker", "buildTrace",
    "TRACE_W", "TRACE_H", "LINES", "CURVES", "JOINED", "SLANTED", "NUMBERS", "SMALL_SHAPES", "SMALL_NUMBERS"]);
 
