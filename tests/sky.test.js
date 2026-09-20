@@ -1,67 +1,40 @@
 /* Sky: reuses Trace's engine wholesale (traceTracker, the board, the pointer
- * wiring — all exercised hard already in trace.test.js), so this only checks
- * what's actually new here: the eight hand-picked line coordinates stay on
- * the board, go top to bottom, and are long enough to be worth tracing, and
- * that a round on the real page draws a themed start/end picture and finishes
- * like any other trace. */
+ * wiring — all exercised hard already in trace.test.js), so this checks what's
+ * actually new here: the four themes' three parallel lines each stay on the
+ * board, run top to bottom and don't overlap, and that a real round on the
+ * page chains all four scenes — sun, rain, kite, plane — before it counts as
+ * solved, not just the first one. Toondemy's session-level behaviour (reward
+ * timing, Repeat/Next) is covered generically in progress.test.js. */
 const { pureContext, bootApp, Runner } = require("./_harness");
 const T = pureContext(["20-stimuli.js", "36-trace-engine.js", "activities/sky.js"],
-  ["SKY_SHAPES", "SKY_LEVELS", "skyEntry", "buildSky", "TRACE_W", "TRACE_H"]);
+  ["SKY_SHAPES", "SKY_ORDER", "TRACE_W", "TRACE_H"]);
 
 const R = new Runner("sky");
 const check = (c, m) => R.check(c, m);
-const SHAPES = Object.keys(T.SKY_SHAPES);
 
-SHAPES.forEach((k) => {
+check(T.SKY_ORDER.length === 4, "four scenes, matching the four the video shows");
+T.SKY_ORDER.forEach((k) => {
   const s = T.SKY_SHAPES[k];
-  check(s.strokes.length === 1, `${k}: a single line, start to end`);
-  s.paths.forEach((p) => {
-    check(p.every((q) => q.x >= 4 && q.x <= T.TRACE_W - 4 && q.y >= 4 && q.y <= T.TRACE_H - 4), `${k}: stays on the board`);
-    check(p.slice(1).every((q, j) => Math.hypot(q.x - p[j].x, q.y - p[j].y) <= 1.0001), `${k}: evenly spaced`);
-    check(p.length > 30, `${k}: long enough to be worth tracing`);
-    check(p[p.length - 1].y > p[0].y, `${k}: top to bottom, like every other line in this app`);
+  check(s.strokes.length === 3, `${k}: three parallel lines, matching the source material`);
+  s.paths.forEach((p, i) => {
+    check(p.every((q) => q.x >= 4 && q.x <= T.TRACE_W - 4 && q.y >= 4 && q.y <= T.TRACE_H - 4), `${k} line ${i + 1}: stays on the board`);
+    check(p.slice(1).every((q, j) => Math.hypot(q.x - p[j].x, q.y - p[j].y) <= 1.0001), `${k} line ${i + 1}: evenly spaced`);
+    check(p.length > 30, `${k} line ${i + 1}: long enough to be worth tracing`);
+    check(p[p.length - 1].y > p[0].y, `${k} line ${i + 1}: top to bottom, like every other line in this app`);
   });
+  const slope = (p) => (p[p.length - 1].y - p[0].y) / (p[p.length - 1].x - p[0].x);
+  const slopes = s.strokes.map((raw) => slope([raw[0], raw[raw.length - 1]]));
+  check(slopes.every((sl) => Math.abs(sl - slopes[0]) < 0.01), `${k}: all three lines run parallel`);
+  const starts = s.strokes.map((raw) => raw[0].x).sort((a, b) => a - b);
+  check(starts.every((x, i) => i === 0 || x - starts[i - 1] >= 20), `${k}: the three lines are spread apart, not stacked on each other`);
   check(!!s.marker && !!s.marker.emoji, `${k}: has a picture waiting at the end`);
   check(!!s.startMark && !!s.startMark.emoji, `${k}: has a picture at the start`);
 });
+// every theme's picture and starting picture is its own — no scene borrows another's
+const markers = T.SKY_ORDER.map((k) => T.SKY_SHAPES[k].marker.emoji);
+check(new Set(markers).size === markers.length, "every scene ends at its own picture, not a repeat of another's");
 
-// every level's shapes exist and share a guide type
-T.SKY_LEVELS.forEach((e, i) => {
-  check(e.shapes.every((k) => T.SKY_SHAPES[k]), `level ${i + 1} (${e.name}): every shape it lists is real`);
-  check(["road", "dotted", "dots"].includes(e.guide), `level ${i + 1} (${e.name}): a real guide type`);
-});
-
-/* ---- date grouping on the home screen ----
-   Two throwaway activities sharing Sky's own section: one lands on the same
-   date as Sky (must share Sky's date heading and sit beside it, not get one
-   of its own), one lands later (its date heading must sort after Sky's). */
-const groupingHtml = (()=>{
-  const fs = require("fs");
-  const path = require("path");
-  const build = require("../tools/build");
-  const FAKES = `
-const FAKE_SAME_DATE = { id:"fakesame", name:"Same day", icon:"🎈", maxLevel:()=>1,
-  levelLabel:()=>"", settingsHint:()=>"", section:"Toondemy Games", date:"2025-01-02",
-  startRound(level, api){ api.stage.appendChild(el("div","prompt-line","x")); } };
-const FAKE_LATER = { id:"fakelater", name:"Later day", icon:"🎉", maxLevel:()=>1,
-  levelLabel:()=>"", settingsHint:()=>"", section:"Toondemy Games", date:"2025-01-09",
-  startRound(level, api){ api.stage.appendChild(el("div","prompt-line","x")); } };
-`;
-  const tmp = path.join(build.SRC, "activities", "__sky_test_fakes.js");
-  fs.writeFileSync(tmp, FAKES);
-  try {
-    build.ACTIVITY_FILES.push("activities/__sky_test_fakes.js");
-    return build.buildBody().replace(
-      /const ACTIVITIES\s*=\s*\[([^\]]*)\];/,
-      "const ACTIVITIES = [$1, FAKE_SAME_DATE, FAKE_LATER ];"
-    );
-  } finally {
-    fs.unlinkSync(tmp);
-  }
-})();
-const { window: gwin } = bootApp({ html: groupingHtml });
-
-/* ---- the page ---- */
+/* ---- the page: all four scenes chain within one round ---- */
 const { window, errors } = bootApp();
 const doc = window.document;
 const $ = (s) => doc.querySelector(s);
@@ -80,35 +53,29 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 (async () => {
   await sleep(150);
-
-  const gdoc = gwin.document;
-  const dateHeads = Array.from(gdoc.querySelectorAll(".date-heading")).map((h) => h.textContent);
-  check(dateHeads.filter((t) => t === "2 Jan 2025").length === 1,
-    "two games on the same date share exactly one date heading, not one each");
-  const jan2Row = gdoc.querySelector(".date-heading") && gdoc.querySelector(".date-heading").nextElementSibling;
-  check(!!jan2Row && jan2Row.querySelector("#card-sky") && jan2Row.querySelector("#card-fakesame"),
-    "and both their cards sit in that one row");
-  check(dateHeads.indexOf("2 Jan 2025") < dateHeads.indexOf("9 Jan 2025"),
-    "date headings sort oldest first");
-
   check(!!$("#card-sky") && /Emergent writing slanting lines/.test($("#card-sky").textContent), "Sky gets its own home card");
   check(/Toondemy Games/.test(doc.querySelector(".section-heading").textContent), "sits under the Toondemy Games section heading");
-  check(/2 Jan 2025/.test(doc.querySelector(".date-heading").textContent), "and its own date heading, since the date isn't in the card title");
+  check(!$("#lv-sky"), "no level stepper — Sky is one fixed game, not a ladder");
+
   click(doc.querySelector('.playbtn[data-kind="sky"]'));
-  const board = $("#stage .trace-board");
-  check(!!board, "a tracing board is drawn, same as Trace");
-  check(!!board.querySelector(".trace-start"), "with a green dot to start on");
-  check(!!board.querySelector("text[pointer-events='none']"), "and a themed picture sitting at the start, out of the way of touch");
 
-  const pts = board._trace.stroke().pts;
-  const go = (type, q) => board.dispatchEvent(ptr(type, q));
-  go("pointerdown", pts[0]);
-  pts.forEach((q) => go("pointermove", q));
-  go("pointerup", pts[pts.length - 1]);
-
-  check(doc.querySelectorAll("#tokens .tok.full").length === 1, "tracing all the way down finishes the round and earns a token");
-  check(!board.querySelector(".trace-start"), "the green dot is gone, since there's nothing left to trace");
-  check(!!board.querySelector("text.trace-won"), "the picture at the end pops, the same way Trace's star does");
+  const traceOneStroke = () => {
+    const board = $("#stage .trace-board");
+    const pts = board._trace.stroke().pts;
+    const go = (type, q) => board.dispatchEvent(ptr(type, q));
+    go("pointerdown", pts[0]);
+    pts.forEach((q) => go("pointermove", q));
+    go("pointerup", pts[pts.length - 1]);
+  };
+  const seenHeads = new Set();
+  for (let i = 0; i < 12; i++) {
+    seenHeads.add($("#stage .prompt-line").textContent);
+    check(doc.querySelectorAll("#tokens .tok.full").length === 0,
+      `stroke ${i + 1} of 12: no token yet — the game isn't done until every scene is`);
+    traceOneStroke();
+  }
+  check(seenHeads.size === 4, "all four scenes' prompts were shown in one playthrough (got " + seenHeads.size + ")");
+  check(doc.querySelectorAll("#tokens .tok.full").length === 1, "the twelfth line — the last of the fourth scene — finishes the round and earns the token");
 
   R.finish(errors);
 })();

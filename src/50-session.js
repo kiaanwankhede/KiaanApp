@@ -18,8 +18,13 @@
        startRound:(level, api) => { … },   // draw one round into api.stage
        section:   "Toondemy Games",        // optional — groups under this heading on
                                             // the home screen instead of the plain row
-       date:      "2025-01-02"             // optional — "YYYY-MM-DD"; within a section,
+       date:      "2025-01-02",            // optional — "YYYY-MM-DD"; within a section,
                                             // cards always sort oldest first (src/70-home.js)
+       oneShot:   true                     // optional — a single fixed game, no level ladder:
+                                            // no stepper on its card, the reward shows the
+                                            // moment its one round solves (not after a block),
+                                            // and the reward screen offers Repeat / Next
+                                            // instead of counting straight into another round
      }
 
    startRound gets an `api` and is responsible for nothing but this round:
@@ -46,9 +51,12 @@ let sess = null;
 function activityById(id){ return ACTIVITIES.find(a => a.id === id) || ACTIVITIES[0]; }
 
 function startSession(id){
+  // a one-shot game's single round IS the whole game — the reward is due the
+  // moment it solves, not after a whole block of them like every other activity
+  const target = activityById(id).oneShot ? 1 : rewardTarget();
   sess = {
     kind: id, correct:0, misses:0, prompts:0, started:Date.now(),
-    sinceReward:0, target:rewardTarget(), attempts:0, clean:0, asked:0
+    sinceReward:0, target, attempts:0, clean:0, asked:0
   };
   show("#play");
   renderTokens();
@@ -64,6 +72,7 @@ function updateLevelWatermark(){
   const wm = $("#lvWatermark");
   if(!sess || !wm) return;
   const act = activityById(sess.kind);
+  if(act.oneShot){ wm.innerHTML = ""; return; }          // nothing here is levelling
   const lvl = levelOf(act.id);
   const p = (progress.perLevel && progress.perLevel[act.id + ":" + lvl]) || {n:0, indep:0, hits:0};
   const blockSize = S.itemsPerSession;

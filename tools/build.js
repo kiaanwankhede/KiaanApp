@@ -45,6 +45,7 @@ const ACTIVITY_FILES = [
   "activities/trace.js",
   "activities/match.js",
   "activities/sky.js",
+  "activities/nine.js",
 ];
 
 const SHELL_AFTER = [

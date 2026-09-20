@@ -129,6 +129,15 @@ const SOLVE = {
   },
   count(win) { return SOLVE.pattern(win); },     // same shape: one slot, cards to pick from
   match(win) { return SOLVE.pattern(win); },     // same shape: one slot, cards to pick from
+  nine(win) {
+    const d = win.document;
+    const opts = Array.from(d.querySelectorAll("#stage .tray .opt .tile"));
+    const bins = Array.from(d.querySelectorAll("#stage .bin.dropzone")).filter((b) => b.dataset.full !== "1");
+    if (!opts.length || !bins.length) return null;
+    const right = opts.find((t) => t._item.correct);
+    const wrong = opts.find((t) => !t._item.correct);
+    return { right: right && [right, bins[0]], wrong: wrong && [wrong, bins[0]] };
+  },
   seriate(win) {
     const d = win.document, T = win.__tns;
     const row = d.querySelector("#stage .steps");
@@ -198,16 +207,26 @@ async function scenario(kind, { assisted, startAt = 1, rounds, miss = false, wai
   await sleep(150);
   const plus = window.document.querySelector(`.lvbtn[data-kind="${kind}"][data-dir="1"]`);
   for (let i = 1; i < startAt; i++) click(window, plus);
+  // startAt is a wish, not a guarantee: an activity shorter than startAt levels
+  // clamps at its own top, same as the stepper does for real, so every check
+  // below compares against where play actually began rather than a literal.
+  const startLevel = window.__tns.levelOf(kind);
   click(window, window.document.querySelector(`.playbtn[data-kind="${kind}"]`));
   const finished = await play(window, kind, rounds, miss, waitForHand);
   const level = window.__tns.levelOf(kind);
-  return { window, errors, finished, level };
+  return { window, errors, finished, level, startLevel };
 }
 
+// Toondemy's games are oneShot: a single fixed round with no ladder, so the
+// level-up/level-down scenarios below don't apply to them at all — they get
+// their own, much shorter check further down instead.
+const ONE_SHOT = new Set(["sky", "nine"]);
+
 (async () => {
-  const kinds = registeredActivities().map((c) =>
-    ({ PATTERNS: "pattern", SORTING: "sort", SERIATION: "seriate", COUNTING: "count", TRACING: "trace", MATCHING: "match", SKY: "sky" }[c]));
-  check(kinds.every(Boolean), "every registered activity has a solver here");
+  const allKinds = registeredActivities().map((c) =>
+    ({ PATTERNS: "pattern", SORTING: "sort", SERIATION: "seriate", COUNTING: "count", TRACING: "trace", MATCHING: "match", SKY: "sky", NINE: "nine" }[c]));
+  check(allKinds.every(Boolean), "every registered activity has a solver here");
+  const kinds = allKinds.filter((k) => !ONE_SHOT.has(k));
   const allErrors = [];
 
   for (const kind of kinds) {
@@ -243,26 +262,63 @@ async function scenario(kind, { assisted, startAt = 1, rounds, miss = false, wai
     r = await scenario(kind, { assisted: true, startAt: 5, rounds: BLOCK * 2, waitForHand: true });
     allErrors.push(...r.errors);
     check(r.finished, `${kind}: the hand did come, every round`);
-    check(r.level === 5,
-      `${kind}: assisted ON, waits for the hand -> neither up nor dropped (got level ${r.level})`);
+    check(r.level === r.startLevel,
+      `${kind}: assisted ON, waits for the hand -> neither up nor dropped (got level ${r.level}, started at ${r.startLevel})`);
 
     // 4 — assisted off, a mistake every round, demotion explicitly turned back on
     r = await scenario(kind, { assisted: false, startAt: 5, rounds: BLOCK, miss: true, neverDemote: false });
     allErrors.push(...r.errors);
-    check(r.level === 4, `${kind}: assisted OFF, a mistake every round, demotion on -> drops a level (got level ${r.level})`);
+    check(r.level === r.startLevel - 1,
+      `${kind}: assisted OFF, a mistake every round, demotion on -> drops a level (got level ${r.level}, started at ${r.startLevel})`);
 
     // 5 — assisted ON, same, demotion turned back on: mistakes still count
     r = await scenario(kind, { assisted: true, startAt: 5, rounds: BLOCK, miss: true, neverDemote: false });
     allErrors.push(...r.errors);
-    check(r.level === 4, `${kind}: assisted ON, a mistake every round, demotion on -> drops a level (got level ${r.level})`);
+    check(r.level === r.startLevel - 1,
+      `${kind}: assisted ON, a mistake every round, demotion on -> drops a level (got level ${r.level}, started at ${r.startLevel})`);
 
     // 6 — the real shipped default: neverDemote left unset, so it falls through
     // to DEFAULTS.neverDemote = true in 00-state.js. A mistake every round must
     // NOT drop him, which is the whole point of this feature.
     r = await scenario(kind, { assisted: false, startAt: 5, rounds: BLOCK, miss: true });
     allErrors.push(...r.errors);
-    check(r.level === 5,
-      `${kind}: with the real default (never drop a level), a mistake every round does not drop him (got level ${r.level})`);
+    check(r.level === r.startLevel,
+      `${kind}: with the real default (never drop a level), a mistake every round does not drop him (got level ${r.level}, started at ${r.startLevel})`);
+  }
+
+  // Toondemy games: one fixed round (however many scenes it's chained from),
+  // then the reward — immediately, not after a block — with Repeat and Next
+  // waiting on it instead of the usual auto-continue into another round.
+  const NEXT_ONE_SHOT = { sky: "nine", nine: "sky" };
+  for (const kind of allKinds.filter((k) => ONE_SHOT.has(k))) {
+    let r = await scenario(kind, { assisted: false, rounds: 1 });
+    allErrors.push(...r.errors);
+    check(r.finished, `${kind}: the whole game (every scene it's chained from) played through`);
+    await sleep(700);
+    const doc = r.window.document;
+    check(doc.querySelector("#reward").classList.contains("on"),
+      `${kind}: the reward shows the moment the one round finishes, not after a block of them`);
+    check(!doc.querySelector("#rwActions").hidden,
+      `${kind}: Repeat and Next wait on the reward screen instead of auto-continuing`);
+    check(r.window.__tns.levelOf(kind) === 1, `${kind}: never levels — it's one fixed game, not a ladder`);
+
+    // Next moves straight into the other Toondemy game
+    click(r.window, doc.querySelector("#rwNext"));
+    await sleep(200);
+    check(doc.querySelector("#play").classList.contains("on"), `${kind}: Next leaves the reward screen and starts playing`);
+    check(r.window.__tns.sess && r.window.__tns.sess.kind === NEXT_ONE_SHOT[kind],
+      `${kind}: Next starts the other Toondemy game (got ${r.window.__tns.sess && r.window.__tns.sess.kind})`);
+
+    // Repeat restarts the same game, from a fresh boot
+    let r2 = await scenario(kind, { assisted: false, rounds: 1 });
+    allErrors.push(...r2.errors);
+    await sleep(700);
+    const doc2 = r2.window.document;
+    click(r2.window, doc2.querySelector("#rwRepeat"));
+    await sleep(200);
+    check(doc2.querySelector("#play").classList.contains("on"), `${kind}: Repeat leaves the reward screen and starts playing`);
+    check(r2.window.__tns.sess && r2.window.__tns.sess.kind === kind && r2.window.__tns.sess.correct === 0,
+      `${kind}: Repeat starts the same game over, fresh`);
   }
 
   R.finish(allErrors);

@@ -11,6 +11,11 @@
    always sort oldest first. Activities with no section are never grouped or
    sorted by date, only listed in registry order, exactly as before any of
    this existed.
+
+   An activity may also declare `oneShot: true` — a single fixed game with
+   no ladder (Toondemy's own games: they recreate one specific lesson video
+   exactly, not a graded curriculum on top of it). Its card gets no level
+   stepper, since there is nowhere for it to step to.
    ============================================================== */
 function formatSectionDate(iso){
   if(!iso) return "";
@@ -23,18 +28,20 @@ function buildCard(act){
   card.appendChild(el("div","ic", act.icon));
   card.appendChild(el("div","nm", act.name));
 
-  const row = el("div","lvrow");
-  const minus = el("button","lvbtn","−"); minus.dataset.kind = act.id; minus.dataset.dir = "-1";
-  const label = el("div","lv"); label.id = "lv-" + act.id;
-  const plus  = el("button","lvbtn","+"); plus.dataset.kind = act.id; plus.dataset.dir = "1";
-  row.append(minus, label, plus);
-  card.appendChild(row);
+  if(!act.oneShot){
+    const row = el("div","lvrow");
+    const minus = el("button","lvbtn","−"); minus.dataset.kind = act.id; minus.dataset.dir = "-1";
+    const label = el("div","lv"); label.id = "lv-" + act.id;
+    const plus  = el("button","lvbtn","+"); plus.dataset.kind = act.id; plus.dataset.dir = "1";
+    row.append(minus, label, plus);
+    card.appendChild(row);
+    minus.addEventListener("click", ()=>changeLevel(act.id, -1));
+    plus .addEventListener("click", ()=>changeLevel(act.id,  1));
+  }
 
   const play = el("button","playbtn","▶ PLAY"); play.dataset.kind = act.id;
   card.appendChild(play);
 
-  minus.addEventListener("click", ()=>changeLevel(act.id, -1));
-  plus .addEventListener("click", ()=>changeLevel(act.id,  1));
   play .addEventListener("click", ()=>{
     goFullscreen(); keepAwake();   // PLAY is a real user gesture, so both are allowed here
     if(isEnabled(act.id)) startSession(act.id);
@@ -57,6 +64,19 @@ function groupHomeSections(activities){
   });
   sections.forEach(sec => sec.dates.sort((a, b)=> (a.date || "").localeCompare(b.date || "")));
   return { plain, sections };
+}
+/* The activity after this one in its own section, in the same oldest-first
+   order the home screen lists them — wraps back to the first past the last.
+   null if this activity has no section, or is the only thing in it. */
+function nextInSection(act){
+  if(!act.section) return null;
+  const sec = groupHomeSections(ACTIVITIES).sections.find(s => s.name === act.section);
+  if(!sec) return null;
+  const flat = [];
+  sec.dates.forEach(grp => flat.push(...grp.acts));
+  if(flat.length < 2) return null;
+  const idx = flat.findIndex(a => a.id === act.id);
+  return idx === -1 ? null : flat[(idx + 1) % flat.length];
 }
 function buildHomeCards(){
   const wrap = $("#homeCards");

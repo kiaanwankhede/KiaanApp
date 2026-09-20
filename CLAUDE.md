@@ -1,8 +1,8 @@
 # Think & Sort
 
-A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Seven
-activities so far — Patterns, Sorting, Order, How many, Trace, Match and Sky —
-built as
+A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Eight
+activities so far — Patterns, Sorting, Order, How many, Trace, Match, Sky and
+Nine — built as
 **one offline HTML file** that runs from a tablet with no network, no install
 and no dependencies.
 
@@ -52,8 +52,10 @@ src/
     count.js       "how many?" — match amounts, 21 levels in 6 stages, up to 10
     trace.js       "follow the line" — strokes, then numbers 0–9, then smaller, 30 levels
     match.js       "what goes with it?" — association pairs, 22 levels
-    sky.js         "follow the line" again, dressed as reaching a real thing (sun to a
-                   sprout, kite to kite, plane to plane) instead of a plain star — 18 levels
+    sky.js         "follow the line" again, dressed as reaching a real thing — three rays,
+                   three raindrops, three kite strings, three flight paths, one fixed game
+    nine.js        "fill all nine" — bees into hives, ladybirds onto leaves, Sorting's
+                   tray-and-bins mechanic reused for a number instead of a rule, one fixed game
   60-registry.js   the list of activities. Adding one is a line here.
   70-home.js       home screen, generated from the registry
   75-gate.js       passcode gate for Settings
@@ -212,6 +214,48 @@ add a rewarding animation, sound, or celebratory flash to it, here or to
 Trace — that's the whole point of building it this way instead of just
 skinning the other app.
 
+**Toondemy Games is one fixed game per lesson, not a ladder.** Every other
+activity is a graded curriculum with many levels; a Toondemy game
+(`oneShot: true` in the contract, see src/50-session.js) is a single round
+that recreates one specific lesson video exactly — all of its scenes, back
+to back, in the order the video shows them, at the one guide style or
+difficulty the video actually uses throughout. No stepper on its home card
+(src/70-home.js hides it when `oneShot` is set), no easier or harder
+version. Sky chains its four scenes (sun, rain, kite, plane — three
+parallel lines each, the same fan of strokes Trace's own multi-stroke
+shapes like "plus" already support) and Nine its two (bees into nine
+hives, then ladybirds onto nine leaves, Sorting's tray-and-bins mechanic
+reused rather than reinvented) by wrapping the `api` each file is handed:
+the wrapped copy's `solved()` starts the next scene instead of finishing
+the round, until the last scene calls the real one. Misses and hints from
+every scene still reach the real api untouched, so a mistake on the first
+scene still means the whole game wasn't independent. The one thing either
+adds beyond what its video shows is this app's own habit, not the source's:
+Nine always mixes a couple of decoy bugs into the tray (not a harder
+version to unlock — just always there), the same shortcut-guard principle
+as Sorting's own rounds. Never grow a Toondemy game into a curriculum on
+top of its lesson — a 1-to-9 counting ladder out of Nine would just
+duplicate How Many's job under a different mechanic.
+
+**A one-shot game's reward waits for a tap, not a timer, and offers Repeat
+and Next.** Every other activity shows the reward after a whole block of
+correct rounds (`S.rewardEvery`/`itemsPerSession`) and carries straight on
+into the next round after a few seconds — because play there never stops.
+A Toondemy game's one round already IS the whole game, so
+`src/50-session.js` gives it a reward target of exactly 1: the reward
+shows the moment that round (however many scenes it's chained from)
+solves. And since there's no next round in the same game to carry on
+into, `src/30-rewards.js` skips the auto-continue timer for it and shows
+two icon buttons instead (`#rwActions` in the reward screen): Repeat
+starts the same game fresh, Next starts whichever Toondemy game comes
+after it by date (`nextInSection()` in src/70-home.js, wrapping past the
+last back to the first). The number badge and every other bit of feedback
+in these games stays exactly as calm as the rest of the app — see **Sky is
+Trace's engine wearing different art** above and **Silent** below; Repeat
+and Next are the one deliberate departure from "play never stops",
+because unlike every other activity here, a Toondemy game actually has an
+end, the same way its source video does.
+
 **Mastery: 80% independent across two consecutive blocks moves up; under 50%
 in one block moves down.** Each round counts one of three ways: answered with
 no miss before the hand appeared → *independent*, counts toward moving up;
@@ -247,7 +291,9 @@ the app restarts at level 1 every launch and re-climbing would otherwise cost
 hundreds of answers a session.
 
 **Play never stops.** There is no "done for today" and no session cap. It runs
-until a parent taps back.
+until a parent taps back. Toondemy's one-shot games are the one deliberate
+exception — see **A one-shot game's reward waits for a tap** above — because
+unlike every other activity here, they actually have an end.
 
 **Every launch picks up two levels below his best** (`WARM_UP_DROP` in
 00-state.js), floored at Level 1 — not at Level 1 every time, and not at
