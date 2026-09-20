@@ -5,7 +5,8 @@
  * a real round on the page chains both scenes — bees, then ladybirds —
  * before it counts as solved, not just the first one. */
 const { pureContext, bootApp, Runner } = require("./_harness");
-const T = pureContext(["activities/nine.js"], ["NINE_N", "NINE_DECOYS", "NINE_THEMES", "NINE_ORDER", "buildNineScene"]);
+const T = pureContext(["activities/nine.js"],
+  ["NINE_N", "NINE_DECOYS", "NINE_SPARE", "NINE_THEMES", "NINE_ORDER", "buildNineScene"]);
 
 const R = new Runner("nine");
 const check = (c, m) => R.check(c, m);
@@ -13,14 +14,17 @@ const check = (c, m) => R.check(c, m);
 check(T.NINE_N === 9, "nine slots, matching the lesson's own number");
 check(T.NINE_ORDER.length === 2, "two scenes — bees, then ladybirds — matching the video");
 
+check(T.NINE_SPARE > 0, "the tray holds spares, so emptying it and filling the nine aren't the same act");
+
 T.NINE_ORDER.forEach((k) => {
   const t = T.NINE_THEMES[k];
   check(t.ch !== t.decoy, `${k}: the decoy is a different creature from the real one`);
+  check(/<svg/.test(t.art()), `${k}: the empty slot has its own drawn art, not a blank box`);
   for (let i = 0; i < 50; i++) {
     const r = T.buildNineScene(k);
     const correct = r.items.filter((it) => it.correct);
     const wrong = r.items.filter((it) => !it.correct);
-    check(correct.length === T.NINE_N, `${k}: nine correct items to place`);
+    check(correct.length === T.NINE_N + T.NINE_SPARE, `${k}: nine to place plus ${T.NINE_SPARE} spare`);
     check(wrong.length === T.NINE_DECOYS, `${k}: exactly ${T.NINE_DECOYS} decoys, every time — no easier version without them`);
     check(correct.every((it) => it.ch === t.ch), `${k}: every correct item is the theme's own creature`);
     check(wrong.every((it) => it.ch === t.decoy), `${k}: every decoy is the theme's own decoy`);
@@ -58,27 +62,41 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   check(!$("#lv-nine"), "no level stepper — Nine is one fixed game, not a ladder");
 
   click(doc.querySelector('.playbtn[data-kind="nine"]'));
-  check(doc.querySelectorAll("#stage .bin.dropzone").length === 9, "nine empty slots for the first scene");
-  check(doc.querySelectorAll("#stage .tray .opt").length === 9 + 2, "tray holds the nine needed plus the two decoys");
+  check(doc.querySelectorAll("#stage .numslot.dropzone").length === 9, "nine empty slots for the first scene");
+  check(!!doc.querySelector("#stage .numslot svg"), "each slot is drawn as the hive it is, not left blank");
+  check(doc.querySelectorAll("#stage .tray .opt").length === 9 + 3 + 2,
+    "tray holds the nine needed, the spares and the decoys");
+  check(/Scene 1 of 2/.test($("#lvWatermark").textContent), "the corner says which scene he's on, since there are no levels to report");
 
-  // fill all nine bee slots, ignoring the two decoys — the same helper
-  // progress.test.js's generic solver uses, just driven straight through
-  for (let n = 0; n < 9; n++) {
-    const opts = Array.from(doc.querySelectorAll("#stage .tray .opt .tile"));
-    const bins = Array.from(doc.querySelectorAll("#stage .bin.dropzone")).filter((b) => b.dataset.full !== "1");
-    const right = opts.find((t) => t._item.correct);
-    dropOn(window, right, bins[0]);
-  }
+  const fillScene = () => {
+    for (let n = 0; n < 9; n++) {
+      const opts = Array.from(doc.querySelectorAll("#stage .tray .opt .tile"));
+      const slots = Array.from(doc.querySelectorAll("#stage .numslot.dropzone")).filter((b) => b.dataset.full !== "1");
+      dropOn(window, opts.find((t) => t._item.correct), slots[0]);
+    }
+  };
+
+  // a decoy first: it must glide back AND say something, not sit there silently
+  const decoy = Array.from(doc.querySelectorAll("#stage .tray .opt .tile")).find((t) => !t._item.correct);
+  const openSlot = doc.querySelector("#stage .numslot.dropzone");
+  dropOn(window, decoy, openSlot);
+  dropOn(window, decoy, openSlot);
+  check(openSlot.dataset.full !== "1", "a decoy never fills a slot");
+  check(doc.querySelectorAll("#stage .tray .opt.dim").length === 2,
+    "after a couple of tries the decoys dim — the same help every other game gives");
+  dropOn(window, decoy, openSlot);
+  check(!!doc.querySelector("#stage .tray .opt.pick"), "and a try later a right one is outlined");
+
+  fillScene();
   check(doc.querySelectorAll("#tokens .tok.full").length === 0, "nine bees placed, but no token yet — the ladybird scene is still to come");
-  check(doc.querySelectorAll("#stage .bin.dropzone").length === 9, "the second scene's nine slots replace the first scene's");
+  check(doc.querySelectorAll("#stage .numslot.dropzone:not([data-full])").length === 0,
+    "the finished scene stays on screen for a beat rather than being wiped mid-pop");
+
+  await sleep(1200);                                     // the shell's beat between scenes
+  check(/Scene 2 of 2/.test($("#lvWatermark").textContent), "then the corner moves on to scene two");
   check(/leaves/.test($("#stage .prompt-line").textContent), "and it's the ladybird scene now, not bees again");
 
-  for (let n = 0; n < 9; n++) {
-    const opts = Array.from(doc.querySelectorAll("#stage .tray .opt .tile"));
-    const bins = Array.from(doc.querySelectorAll("#stage .bin.dropzone")).filter((b) => b.dataset.full !== "1");
-    const right = opts.find((t) => t._item.correct);
-    dropOn(window, right, bins[0]);
-  }
+  fillScene();
   check(doc.querySelectorAll("#tokens .tok.full").length === 1, "the ninth ladybird — the last of the second scene — finishes the round and earns the token");
 
   R.finish(errors);

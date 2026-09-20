@@ -23,7 +23,7 @@ function seg(opts, cur, onChange){
 function row(labelText, control, hintText){
   const r = el("div","row");
   r.appendChild(el("label",null,labelText));
-  r.appendChild(control);
+  if(control) r.appendChild(control);      // a row can be label + blurb, with nothing to set
   if(hintText) r.appendChild(el("div","hint",hintText));
   return r;
 }
@@ -62,11 +62,15 @@ async function openSettings(){
   const g3 = group("Activities");
   // one pair of rows per registered activity — nothing here names an activity
   ACTIVITIES.forEach(act=>{
-    g3.appendChild(row(act.name.charAt(0) + act.name.slice(1).toLowerCase(),
-      toggle(isEnabled(act.id), v=>{ setEnabled(act.id, v); save(); })));
-    g3.appendChild(row(act.name.charAt(0) + act.name.slice(1).toLowerCase() + " level",
-      stepper(levelOf(act.id), 1, act.maxLevel(), v=>{ setLevelOf(act.id, v); save(); }),
-      act.settingsHint(levelOf(act.id))));
+    const label = act.name.charAt(0) + act.name.slice(1).toLowerCase();
+    g3.appendChild(row(label, toggle(isEnabled(act.id), v=>{ setEnabled(act.id, v); save(); })));
+    // a one-shot game is one fixed game by definition, so a stepper from 1 to 1
+    // would be a dead control — it gets its blurb with nothing to set
+    g3.appendChild(act.oneShot
+      ? row(label + " — how it plays", null, act.settingsHint(1))
+      : row(label + " level",
+          stepper(levelOf(act.id), 1, act.maxLevel(), v=>{ setLevelOf(act.id, v); save(); }),
+          act.settingsHint(levelOf(act.id))));
   });
   g3.appendChild(row("Move levels automatically", toggle(S.autoAdvance,v=>{S.autoAdvance=v;save();}),
     Math.ceil(0.8*S.itemsPerSession) + " of " + S.itemsPerSession + " INDEPENDENT correct (no hint, no prior miss) " +

@@ -211,24 +211,40 @@ function renderTraceRound(api, r){
     guides.appendChild(sm);
   }
 
-  // the end mark sits in its own group so its pop animation can't disturb its
-  // position; on small levels dot and mark shrink too, or on a short stroke
-  // they'd cover half the line between them
+  /* The mark waiting at the end of a stroke sits in its own group so its pop
+     animation can't disturb its position; on small levels dot and mark shrink
+     too, or on a short stroke they'd cover half the line between them.
+
+     By default there is ONE mark, which hops to whichever stroke is live —
+     what Trace has always done, where a shape's strokes are parts of one
+     letter and only finishing the whole thing earns the star. `markEvery`
+     gives each stroke its own instead, all of them there from the start,
+     each popping as its own line is finished: for Sky, where the three lines
+     are three separate journeys to three separate places, two of them
+     otherwise ended in nothing at all. */
   const mk = r.entry.small ? 0.7 : 1;
-  const markAt = traceSvg("g", {}), mark = traceEndMark(r.marker);
-  markAt.appendChild(mark);
+  const ends = [];
+  for(let i=0; i < (r.markEvery ? r.strokes.length : 1); i++){
+    const g = traceSvg("g", {}), m = traceEndMark(r.marker);
+    g.appendChild(m);
+    marks.appendChild(g);
+    ends.push({ g, m });
+  }
   const dot = traceSvg("circle", { r:(5.5*mk).toFixed(2), fill:"#38b000", class:"trace-start" });
-  marks.append(markAt, dot);
+  marks.append(dot);
   let demo = null;
 
   const hex = COLORS[r.colour];
   let si = 0, tracker = traceTracker(r.strokes[0], r.tol);
   let activeId = null, line = null, drift = null;
 
+  const sit = (g, pt)=> g.setAttribute("transform", `translate(${pt.x.toFixed(1)},${pt.y.toFixed(1)}) scale(${mk})`);
+  const lastOf = (i)=> r.strokes[i][r.strokes[i].length-1];
   const place = ()=>{
-    const p = tracker.at(), end = r.strokes[si][r.strokes[si].length-1];
+    const p = tracker.at();
     dot.setAttribute("cx", p.x.toFixed(1)); dot.setAttribute("cy", p.y.toFixed(1));
-    markAt.setAttribute("transform", `translate(${end.x.toFixed(1)},${end.y.toFixed(1)}) scale(${mk})`);
+    if(r.markEvery) ends.forEach((e, i)=> sit(e.g, lastOf(i)));
+    else sit(ends[0].g, lastOf(si));
   };
   const clearDemo = ()=>{ if(demo){ demo.remove(); demo = null; } };
   const showDemo = ()=>{
@@ -249,11 +265,13 @@ function renderTraceRound(api, r){
   };
   const strokeDone = ()=>{
     activeId = null; line = null; drift = null; clearDemo();
+    const finished = si;
     si++;
     api.refocus();
+    if(r.markEvery) ends[finished].m.classList.add("trace-won");   // this line's own picture pops
     if(si >= r.strokes.length){
       dot.remove();
-      mark.classList.add("trace-won");          // the mark pops; his line stays
+      if(!r.markEvery) ends[0].m.classList.add("trace-won");       // the mark pops; his line stays
       api.solved(r.name);                         // tagged by readable name, for Settings
       return;
     }

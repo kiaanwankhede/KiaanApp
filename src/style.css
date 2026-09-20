@@ -143,6 +143,24 @@
 
   .tray{display:flex;gap:clamp(8px,2.5vw,20px);justify-content:center;flex-wrap:wrap;min-height:86px;align-items:center;margin-top:clamp(16px,5vh,40px)}
 
+  /* ---------- NINE (fill all nine) ----------
+     A slot is the hive or the leaf itself, drawn faint until something lands
+     on it; the creature then sits ON the art rather than in a box of its own,
+     so nine of them read as nine filled hives and not as nine full boxes. */
+  /* width caps at five across, so nine slots land as five and four — the same
+     way How Many lays ten dots out as two hands rather than one long line */
+  .numslots{display:flex;gap:clamp(6px,1.6vw,14px);flex-wrap:wrap;justify-content:center;max-width:min(94vw,520px)}
+  .numslot{
+    width:clamp(58px,12vw,88px);aspect-ratio:1/1;border-radius:18px;background:var(--card);
+    box-shadow:var(--shadow);display:grid;place-items:center;position:relative;transition:transform .15s ease;
+  }
+  .numslot svg{width:76%;height:76%;opacity:.85;transition:opacity .2s ease}
+  .numslot.near{transform:scale(1.07)}
+  .numslot.done svg{opacity:.45}
+  /* the creature perches high on the hive rather than dead centre, so the
+     hive underneath still reads once something has landed on it */
+  .numslot .tile{position:absolute;inset:0;margin:auto;background:none;box-shadow:none;transform:translateY(-8%)}
+
   /* ---------- ORDER (the size staircase) ---------- */
   .seq.steps{align-items:flex-end;gap:clamp(3px,.8vw,8px)}
   /* Bars standing in the staircase lose their card: with one white box per bar
