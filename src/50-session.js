@@ -141,6 +141,53 @@ function nextRound(){
   updateLevelWatermark();
   act.startRound(levelOf(act.id), roundApi(act, stage));
 }
+/* ---- a one-shot game made of several scenes ----
+   Sky and Nine both run through a few fixed scenes in order, and both wanted
+   the same two things neither should own itself:
+
+   A BEAT AFTER A SCENE IS FINISHED. Both used to swap scenes in the same tick
+   the last line landed, so the engine's little pop — the picture at the end
+   growing, the ninth bee settling into its hive — was wiped off the screen in
+   the same frame it started. He finished something and the screen just
+   changed. SCENE_GAP_MS leaves it there long enough to be seen.
+
+   AND A QUIET NOTE OF WHERE HE IS. A one-shot game has no levels, so the
+   corner readout has nothing to report — but twelve lines with no sense of
+   how many are left is worse than no game at all. It gets "Scene 2 of 4"
+   instead, in the same quiet corner, on the same terms: a report for a
+   parent watching, never anything the flow depends on.
+
+   A scene draws itself into api.stage and calls its own api.solved() when it
+   is complete. Only the last one finishes the round for real. Misses and
+   hints pass straight through untouched, so a mistake in scene one still
+   means the whole game wasn't independent. */
+const SCENE_GAP_MS = 900;
+function playScenes(api, scenes, tag){
+  const mine = sess;                    // tapping back mid-beat must not draw the next scene
+  let idx = 0;
+  const draw = ()=>{
+    if(sess !== mine) return;
+    api.stage.innerHTML = "";
+    noteScene(idx + 1, scenes.length);
+    scenes[idx](Object.assign({}, api, {
+      solved(){
+        idx++;
+        if(idx >= scenes.length){ api.solved(tag); return; }
+        setTimeout(draw, SCENE_GAP_MS);
+      }
+    }));
+  };
+  draw();
+}
+function noteScene(n, total){
+  const wm = $("#lvWatermark");
+  if(!wm || total < 2) return;
+  wm.innerHTML = "";
+  wm.appendChild(el("span","lvw-level","Scene " + n + " of " + total));
+  const dots = el("span","lvw-blocks");
+  for(let i=0;i<total;i++) dots.appendChild(el("span", i < n - 1 ? "on" : "", "●"));
+  wm.appendChild(dots);
+}
 function roundApi(act, stage){
   return {
     stage,

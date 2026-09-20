@@ -30,6 +30,26 @@ T.SKY_ORDER.forEach((k) => {
   check(!!s.marker && !!s.marker.emoji, `${k}: has a picture waiting at the end`);
   check(!!s.startMark && !!s.startMark.emoji, `${k}: has a picture at the start`);
 });
+/* The pictures at either end have to fit on the board, not just the lines:
+   the first version sat the sun on top of the green start dot and half off
+   the corner of the card. Modelled on what the engine actually does — a
+   fixed step back along the line's own direction — with a generous guess at
+   how much room an emoji that size takes up. */
+const ICON_BACK = 15, ICON_HALF = 8;
+T.SKY_ORDER.forEach((k) => {
+  const first = T.SKY_SHAPES[k].paths[0];
+  const p0 = first[0], p1 = first[Math.min(6, first.length - 1)];
+  const dx = p0.x - p1.x, dy = p0.y - p1.y, len = Math.hypot(dx, dy) || 1;
+  const ix = p0.x + (dx * ICON_BACK) / len, iy = p0.y + (dy * ICON_BACK) / len;
+  check(ix - ICON_HALF >= 0 && iy - ICON_HALF >= 0 && ix + ICON_HALF <= T.TRACE_W && iy + ICON_HALF <= T.TRACE_H,
+    `${k}: the picture saying where the line starts fits on the board (sits at ${ix.toFixed(0)},${iy.toFixed(0)})`);
+  T.SKY_SHAPES[k].paths.forEach((p, i) => {
+    const e = p[p.length - 1];
+    check(e.x + ICON_HALF <= T.TRACE_W && e.y + ICON_HALF <= T.TRACE_H,
+      `${k} line ${i + 1}: the picture waiting at the end fits on the board too`);
+  });
+});
+
 // every theme's picture and starting picture is its own — no scene borrows another's
 const markers = T.SKY_ORDER.map((k) => T.SKY_SHAPES[k].marker.emoji);
 check(new Set(markers).size === markers.length, "every scene ends at its own picture, not a repeat of another's");
@@ -58,6 +78,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   check(!$("#lv-sky"), "no level stepper — Sky is one fixed game, not a ladder");
 
   click(doc.querySelector('.playbtn[data-kind="sky"]'));
+  check(!!$("#stage .trace-board text[pointer-events='none']"), "a themed picture sits at the start, out of the way of touch");
+  check(doc.querySelectorAll("#stage .trace-board text:not([pointer-events])").length === 3,
+    "and all three lines show where they're going from the start, not just the live one");
 
   const traceOneStroke = () => {
     const board = $("#stage .trace-board");
@@ -68,11 +91,21 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     go("pointerup", pts[pts.length - 1]);
   };
   const seenHeads = new Set();
-  for (let i = 0; i < 12; i++) {
-    seenHeads.add($("#stage .prompt-line").textContent);
-    check(doc.querySelectorAll("#tokens .tok.full").length === 0,
-      `stroke ${i + 1} of 12: no token yet — the game isn't done until every scene is`);
-    traceOneStroke();
+  for (let scene = 0; scene < 4; scene++) {
+    check(new RegExp(`Scene ${scene + 1} of 4`).test($("#lvWatermark").textContent),
+      `scene ${scene + 1}: the corner says which scene he's on, since there are no levels to report`);
+    for (let i = 0; i < 3; i++) {
+      seenHeads.add($("#stage .prompt-line").textContent);
+      check(doc.querySelectorAll("#tokens .tok.full").length === 0,
+        `scene ${scene + 1}, line ${i + 1}: no token yet — the game isn't done until every scene is`);
+      traceOneStroke();
+    }
+    if (scene < 3) {
+      // the finished scene has to still be there, mid-pop, not already wiped
+      check(!!$("#stage .trace-board text.trace-won"),
+        `scene ${scene + 1}: the picture at the end is left on screen to be seen before the next scene`);
+      await sleep(1200);                                 // the shell's beat between scenes
+    }
   }
   check(seenHeads.size === 4, "all four scenes' prompts were shown in one playthrough (got " + seenHeads.size + ")");
   check(doc.querySelectorAll("#tokens .tok.full").length === 1, "the twelfth line — the last of the fourth scene — finishes the round and earns the token");

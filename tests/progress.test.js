@@ -132,7 +132,7 @@ const SOLVE = {
   nine(win) {
     const d = win.document;
     const opts = Array.from(d.querySelectorAll("#stage .tray .opt .tile"));
-    const bins = Array.from(d.querySelectorAll("#stage .bin.dropzone")).filter((b) => b.dataset.full !== "1");
+    const bins = Array.from(d.querySelectorAll("#stage .numslot.dropzone")).filter((b) => b.dataset.full !== "1");
     if (!opts.length || !bins.length) return null;
     const right = opts.find((t) => t._item.correct);
     const wrong = opts.find((t) => !t._item.correct);

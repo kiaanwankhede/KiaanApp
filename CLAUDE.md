@@ -44,7 +44,8 @@ src/
                    and tested on its own), the board and the pointer wiring. Trace and
                    Sky are both thin catalogues of shapes drawn on top of this.
   40-mastery.js    level up / level down, activity-agnostic
-  50-session.js    the play loop AND THE ACTIVITY CONTRACT — read this first
+  50-session.js    the play loop AND THE ACTIVITY CONTRACT — read this first;
+                   also playScenes(), the shared runner for a multi-scene one-shot
   activities/
     patterns.js    "what comes next?"  — 40 levels
     sorting.js     "put each where it belongs" — 18 levels
@@ -208,11 +209,14 @@ and a full-screen flash. Sky exists to show the same real thing (sunshine
 reaching a sprout, one kite's string reaching another) is just as engaging
 without any of that: no character, no burst, no sound, nothing full-screen —
 the only difference from Trace is a small still picture waiting at the end
-instead of a star, and one more waiting at the start purely for flavour,
-sat behind the green dot so it's never mistaken for something to touch. Never
-add a rewarding animation, sound, or celebratory flash to it, here or to
-Trace — that's the whole point of building it this way instead of just
-skinning the other app.
+instead of a star, and one more waiting at the start purely for flavour, sat
+behind the green dot so it's never mistaken for something to touch. All three
+of a scene's destinations sit on the board from the moment it opens
+(`markEvery` in the engine), each popping as its own line reaches it — with
+only the live line's target drawn, the other two lines ran off into empty
+space and read as one journey plus two false starts. Never add a rewarding
+animation, sound, or celebratory flash to it, here or to Trace — that's the
+whole point of building it this way instead of just skinning the other app.
 
 **Toondemy Games is one fixed game per lesson, not a ladder.** Every other
 activity is a graded curriculum with many levels; a Toondemy game
@@ -220,22 +224,42 @@ activity is a graded curriculum with many levels; a Toondemy game
 that recreates one specific lesson video exactly — all of its scenes, back
 to back, in the order the video shows them, at the one guide style or
 difficulty the video actually uses throughout. No stepper on its home card
-(src/70-home.js hides it when `oneShot` is set), no easier or harder
-version. Sky chains its four scenes (sun, rain, kite, plane — three
-parallel lines each, the same fan of strokes Trace's own multi-stroke
-shapes like "plus" already support) and Nine its two (bees into nine
-hives, then ladybirds onto nine leaves, Sorting's tray-and-bins mechanic
-reused rather than reinvented) by wrapping the `api` each file is handed:
-the wrapped copy's `solved()` starts the next scene instead of finishing
-the round, until the last scene calls the real one. Misses and hints from
-every scene still reach the real api untouched, so a mistake on the first
-scene still means the whole game wasn't independent. The one thing either
-adds beyond what its video shows is this app's own habit, not the source's:
-Nine always mixes a couple of decoy bugs into the tray (not a harder
-version to unlock — just always there), the same shortcut-guard principle
-as Sorting's own rounds. Never grow a Toondemy game into a curriculum on
-top of its lesson — a 1-to-9 counting ladder out of Nine would just
-duplicate How Many's job under a different mechanic.
+(src/70-home.js hides it when `oneShot` is set) and none in Settings either
+(src/80-settings.js gives it the "how it plays" blurb on its own rather than a
+1-to-1 stepper with nowhere to go), no easier or harder version. Sky is four
+scenes (sun, rain, kite, plane — three parallel lines each, the same fan of
+strokes Trace's own multi-stroke shapes like "plus" already support) and Nine
+is two (bees into nine hives, then ladybirds onto nine leaves, Sorting's
+tray-and-bins mechanic reused rather than reinvented). Never grow a Toondemy
+game into a curriculum on top of its lesson — a 1-to-9 counting ladder out of
+Nine would just duplicate How Many's job under a different mechanic.
+
+**Chaining those scenes is the shell's job, not each game's.** A game hands
+`playScenes(api, scenes, tag)` in src/50-session.js a list of functions and
+it owns the rest: it wraps the `api` each scene is given so the wrapped
+`solved()` starts the next scene instead of finishing the round, until the
+last one calls the real thing. Misses and hints from every scene reach the
+real api untouched, so a mistake in the first scene still means the whole
+game wasn't independent. Two details in there are load-bearing and came
+from watching it: it waits `SCENE_GAP_MS` before wiping the stage, because
+clearing it the instant the last line landed destroyed the very pop that
+said "you did it"; and it holds the session it started in, so tapping back
+mid-beat can't draw the next scene over the home screen. It's also the only
+place that knows how many scenes there are, which is why the corner readout
+for these games comes from here — see **The corner readout during PLAY**
+below.
+
+**The guards a Toondemy game adds are this app's, not the video's.** Nine
+always mixes a couple of decoy bugs into the tray (not a harder version to
+unlock — just always there), the same shortcut-guard principle as Sorting's
+own rounds, and dropping one escalates help exactly as everywhere else:
+dim the decoys after `S.dimAfter`, outline a right one after `S.showAfter`.
+The tray also holds a few MORE creatures than there are slots — with
+exactly nine of each, emptying the tray and filling the nine were the same
+act, so the nine-ness of it was never actually load-bearing. And an empty
+slot is drawn as the hive or the leaf it is, flat and plain: nine blank
+boxes asked him to take "hive" from the prompt line on trust, which a
+4-year-old who can't read cannot do.
 
 **A one-shot game's reward waits for a tap, not a timer, and offers Repeat
 and Next.** Every other activity shows the reward after a whole block of
@@ -273,9 +297,12 @@ one line that calls `setLevelOf(id, curLevel - 1)`.
 `evaluateMastery()` keeps in `progress.perLevel` and echoes them back — current
 level, how many rounds into this block, how many blocks confirmed. It never
 computes mastery itself, so it can't drift out of sync with when a level
-actually moves. Quiet by design (low opacity, `pointer-events:none`) — it's
-there for a parent watching over his shoulder, not something the flow is built
-to draw a 4-year-old's eye to.
+actually moves. For a one-shot game there is no level and no block to report,
+so it says which scene he's on instead ("Scene 2 of 4") — still a report, from
+`playScenes()`, which is the only thing that knows; a one-scene game gets
+nothing at all rather than a pointless "Scene 1 of 1". Quiet by design (low
+opacity, `pointer-events:none`) — it's there for a parent watching over his
+shoulder, not something the flow is built to draw a 4-year-old's eye to.
 
 **The assisted hand waits 3 seconds before it appears** (`HINT_DELAY_MS`), and
 touching anything first keeps it away for that round. That gap is his chance to
