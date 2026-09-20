@@ -15,7 +15,11 @@
        maxLevel:  () => 40,                // how tall its ladder is
        levelLabel:(level) => "AB · Colour", // home card subtitle
        settingsHint:(level) => "…",        // blurb under its Settings stepper
-       startRound:(level, api) => { … }    // draw one round into api.stage
+       startRound:(level, api) => { … },   // draw one round into api.stage
+       section:   "Toondemy Games",        // optional — groups under this heading on
+                                            // the home screen instead of the plain row
+       date:      "2025-01-02"             // optional — "YYYY-MM-DD"; within a section,
+                                            // cards always sort oldest first (src/70-home.js)
      }
 
    startRound gets an `api` and is responsible for nothing but this round:

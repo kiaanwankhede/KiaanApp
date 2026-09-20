@@ -50,7 +50,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 (async () => {
   await sleep(150);
-  check(!!$("#card-sky") && /SKY/.test($("#card-sky").textContent), "Sky gets a home card called SKY");
+  check(!!$("#card-sky") && /Emergent writing slanting lines/.test($("#card-sky").textContent), "Sky gets its dated home card");
+  check(/Toondemy Games/.test(doc.querySelector(".section-heading").textContent), "and sits under the Toondemy Games section heading");
   click(doc.querySelector('.playbtn[data-kind="sky"]'));
   const board = $("#stage .trace-board");
   check(!!board, "a tracing board is drawn, same as Trace");

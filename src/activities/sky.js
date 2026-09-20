@@ -103,7 +103,9 @@ function buildSky(lv){
 
 const SKY = {
   id: "sky",
-  name: "SKY",
+  name: "2 Jan 2025  -  Emergent writing slanting lines",
+  section: "Toondemy Games",
+  date: "2025-01-02",
   icon: "☀️🪁",
   maxLevel: ()=> SKY_LEVELS.length,
   levelLabel: (lv)=> skyEntry(lv).name,
