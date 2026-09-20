@@ -129,6 +129,15 @@ const SOLVE = {
   },
   count(win) { return SOLVE.pattern(win); },     // same shape: one slot, cards to pick from
   match(win) { return SOLVE.pattern(win); },     // same shape: one slot, cards to pick from
+  nine(win) {
+    const d = win.document;
+    const opts = Array.from(d.querySelectorAll("#stage .tray .opt .tile"));
+    const bins = Array.from(d.querySelectorAll("#stage .bin.dropzone")).filter((b) => b.dataset.full !== "1");
+    if (!opts.length || !bins.length) return null;
+    const right = opts.find((t) => t._item.correct);
+    const wrong = opts.find((t) => !t._item.correct);
+    return { right: right && [right, bins[0]], wrong: wrong && [wrong, bins[0]] };
+  },
   seriate(win) {
     const d = win.document, T = win.__tns;
     const row = d.querySelector("#stage .steps");
@@ -198,15 +207,19 @@ async function scenario(kind, { assisted, startAt = 1, rounds, miss = false, wai
   await sleep(150);
   const plus = window.document.querySelector(`.lvbtn[data-kind="${kind}"][data-dir="1"]`);
   for (let i = 1; i < startAt; i++) click(window, plus);
+  // startAt is a wish, not a guarantee: an activity shorter than startAt levels
+  // clamps at its own top, same as the stepper does for real, so every check
+  // below compares against where play actually began rather than a literal.
+  const startLevel = window.__tns.levelOf(kind);
   click(window, window.document.querySelector(`.playbtn[data-kind="${kind}"]`));
   const finished = await play(window, kind, rounds, miss, waitForHand);
   const level = window.__tns.levelOf(kind);
-  return { window, errors, finished, level };
+  return { window, errors, finished, level, startLevel };
 }
 
 (async () => {
   const kinds = registeredActivities().map((c) =>
-    ({ PATTERNS: "pattern", SORTING: "sort", SERIATION: "seriate", COUNTING: "count", TRACING: "trace", MATCHING: "match", SKY: "sky" }[c]));
+    ({ PATTERNS: "pattern", SORTING: "sort", SERIATION: "seriate", COUNTING: "count", TRACING: "trace", MATCHING: "match", SKY: "sky", NINE: "nine" }[c]));
   check(kinds.every(Boolean), "every registered activity has a solver here");
   const allErrors = [];
 
@@ -243,26 +256,28 @@ async function scenario(kind, { assisted, startAt = 1, rounds, miss = false, wai
     r = await scenario(kind, { assisted: true, startAt: 5, rounds: BLOCK * 2, waitForHand: true });
     allErrors.push(...r.errors);
     check(r.finished, `${kind}: the hand did come, every round`);
-    check(r.level === 5,
-      `${kind}: assisted ON, waits for the hand -> neither up nor dropped (got level ${r.level})`);
+    check(r.level === r.startLevel,
+      `${kind}: assisted ON, waits for the hand -> neither up nor dropped (got level ${r.level}, started at ${r.startLevel})`);
 
     // 4 — assisted off, a mistake every round, demotion explicitly turned back on
     r = await scenario(kind, { assisted: false, startAt: 5, rounds: BLOCK, miss: true, neverDemote: false });
     allErrors.push(...r.errors);
-    check(r.level === 4, `${kind}: assisted OFF, a mistake every round, demotion on -> drops a level (got level ${r.level})`);
+    check(r.level === r.startLevel - 1,
+      `${kind}: assisted OFF, a mistake every round, demotion on -> drops a level (got level ${r.level}, started at ${r.startLevel})`);
 
     // 5 — assisted ON, same, demotion turned back on: mistakes still count
     r = await scenario(kind, { assisted: true, startAt: 5, rounds: BLOCK, miss: true, neverDemote: false });
     allErrors.push(...r.errors);
-    check(r.level === 4, `${kind}: assisted ON, a mistake every round, demotion on -> drops a level (got level ${r.level})`);
+    check(r.level === r.startLevel - 1,
+      `${kind}: assisted ON, a mistake every round, demotion on -> drops a level (got level ${r.level}, started at ${r.startLevel})`);
 
     // 6 — the real shipped default: neverDemote left unset, so it falls through
     // to DEFAULTS.neverDemote = true in 00-state.js. A mistake every round must
     // NOT drop him, which is the whole point of this feature.
     r = await scenario(kind, { assisted: false, startAt: 5, rounds: BLOCK, miss: true });
     allErrors.push(...r.errors);
-    check(r.level === 5,
-      `${kind}: with the real default (never drop a level), a mistake every round does not drop him (got level ${r.level})`);
+    check(r.level === r.startLevel,
+      `${kind}: with the real default (never drop a level), a mistake every round does not drop him (got level ${r.level}, started at ${r.startLevel})`);
   }
 
   R.finish(allErrors);

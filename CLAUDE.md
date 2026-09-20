@@ -1,8 +1,8 @@
 # Think & Sort
 
-A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Seven
-activities so far — Patterns, Sorting, Order, How many, Trace, Match and Sky —
-built as
+A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Eight
+activities so far — Patterns, Sorting, Order, How many, Trace, Match, Sky and
+Nine — built as
 **one offline HTML file** that runs from a tablet with no network, no install
 and no dependencies.
 
@@ -54,6 +54,8 @@ src/
     match.js       "what goes with it?" — association pairs, 22 levels
     sky.js         "follow the line" again, dressed as reaching a real thing — three rays,
                    three raindrops, three kite strings, three flight paths — 12 levels
+    nine.js        "fill all nine" — bees into hives, ladybirds onto leaves, Sorting's
+                   tray-and-bins mechanic reused for a number instead of a rule — 4 levels
   60-registry.js   the list of activities. Adding one is a line here.
   70-home.js       home screen, generated from the registry
   75-gate.js       passcode gate for Settings
@@ -221,6 +223,22 @@ supports exactly this for a shape with more than one stroke ("plus" and
 "cross" work the same way), so each Sky theme is one shape with three
 parallel strokes rather than a pool of one-line alternatives. A fuller round
 with real content beats inventing extra levels to paper over a thin one.
+
+**Toondemy Games is source-lesson-scoped, not a curriculum.** Nine (fill nine
+hives with bees, then nine leaves with ladybirds) is the second activity
+filed under that section, and like Sky it stays at exactly what its lesson
+showed — the number 9, in the two scenes actually recorded — rather than
+growing into a 1-to-9 counting ladder that would just duplicate How Many's
+job under a different mechanic. That mechanic is Sorting's tray-and-bins,
+reused as-is rather than reinvented: nine identical dropzones instead of one
+per rule, but the same drag, the same `dataset.full` bookkeeping, the same
+CSS. The one thing added beyond the two recorded scenes is this app's own
+habit, not the source's: a harder sublevel per theme mixes a couple of decoy
+bugs into the tray, so filling every hive takes noticing which creature it
+is rather than dragging whatever's nearest — the same shortcut-guard
+principle as Sorting's own rounds, applied to a new activity rather than
+invented fresh for it. The number itself is a still text tile, exactly like
+every other numeral this app shows — no read-aloud, per **Silent** below.
 
 **Mastery: 80% independent across two consecutive blocks moves up; under 50%
 in one block moves down.** Each round counts one of three ways: answered with
