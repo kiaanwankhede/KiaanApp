@@ -52,8 +52,8 @@ src/
     count.js       "how many?" — match amounts, 21 levels in 6 stages, up to 10
     trace.js       "follow the line" — strokes, then numbers 0–9, then smaller, 30 levels
     match.js       "what goes with it?" — association pairs, 22 levels
-    sky.js         "follow the line" again, dressed as reaching a real thing (sun to a
-                   sprout, kite to kite, plane to plane) instead of a plain star — 18 levels
+    sky.js         "follow the line" again, dressed as reaching a real thing — three rays,
+                   three raindrops, three kite strings, three flight paths — 12 levels
   60-registry.js   the list of activities. Adding one is a line here.
   70-home.js       home screen, generated from the registry
   75-gate.js       passcode gate for Settings
@@ -211,6 +211,16 @@ sat behind the green dot so it's never mistaken for something to touch. Never
 add a rewarding animation, sound, or celebratory flash to it, here or to
 Trace — that's the whole point of building it this way instead of just
 skinning the other app.
+
+**Sky's round is three lines, not one.** The first version gave each theme
+two interchangeable single lines and picked one per round, which felt far
+more repetitive than what it was built to answer — that app puts three (or
+four) parallel lines on screen at once, all their guides visible from the
+start, traced one at a time before anything is "done". Trace already
+supports exactly this for a shape with more than one stroke ("plus" and
+"cross" work the same way), so each Sky theme is one shape with three
+parallel strokes rather than a pool of one-line alternatives. A fuller round
+with real content beats inventing extra levels to paper over a thin one.
 
 **Mastery: 80% independent across two consecutive blocks moves up; under 50%
 in one block moves down.** Each round counts one of three ways: answered with
