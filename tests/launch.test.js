@@ -8,6 +8,10 @@
  *   - a confirmation block is 5 answers, and an existing save that still holds
  *     the old default of 10 is moved to 5 once — while a block size a parent
  *     chose themselves is left alone
+ *   - a best saved from a LONGER ladder is clamped to the ladder that exists
+ *     now. Ladders do get shorter between releases (Sky went from 18 levels to
+ *     a single fixed game), and unclamped that showed a parent "Level 97/40"
+ *     and left mastery unable to advance him ever again.
  */
 const { bootApp, Runner } = require("./_harness");
 
@@ -54,6 +58,13 @@ async function launch(settings, progress) {
   r = await launch({ levels: { pattern: 20 } }, { sessions: [], perLevel: {}, best: { pattern: 7 } });
   errs.push(...r.errors);
   check(r.level === 5, `a saved mid-climb level of 20 is ignored in favour of best-2 (got ${r.level})`);
+
+  // a best from a ladder that has since got shorter can't leave him on a level
+  // that no longer exists — Patterns has 40
+  r = await launch({}, { sessions: [], perLevel: {}, best: { pattern: 99 } });
+  errs.push(...r.errors);
+  check(r.level === 40, `a best of 99 on a 40-level ladder reads as Level 40, not 97 (got ${r.level})`);
+  check(/Level 40\/40/.test(r.card), `and the card doesn't offer a level that isn't there (got "${r.card.replace(/\s+/g, " ")}")`);
 
   // ---- how big a block is ----
   r = await launch({ itemsPerSession: 10 }, null);            // an old save, no rev

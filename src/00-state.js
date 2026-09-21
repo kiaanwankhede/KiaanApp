@@ -72,8 +72,23 @@ function startLevelFor(id){
   return Math.max(1, best - WARM_UP_DROP);
 }
 
+/* A ladder can get SHORTER between releases — Sky went from 18 levels to a
+   single fixed game — and progress.best remembers the old frontier. Every
+   activity clamps its own level internally so nothing crashes, but unclamped
+   here it still showed a parent "Level 97/38" on the card and in the corner,
+   and left mastery unable to ever advance him again (curLevel < maxLevel is
+   false forever) until someone noticed and tapped the stepper.
+
+   Clamped on the way out rather than healed in storage: if the ladder grows
+   back, the best he actually reached is still there to pick up from. Wrapped
+   because the registry is defined below this file in build order — a level
+   read before it exists simply isn't clamped, which is the old behaviour. */
+function clampToLadder(id, level){
+  try { return Math.min(level, activityById(id).maxLevel()); }
+  catch(e){ return level; }
+}
 /* per-activity accessors — an unknown id reads as his start level, switched on */
-function levelOf(id){ return (S.levels && S.levels[id]) || startLevelFor(id); }
+function levelOf(id){ return clampToLadder(id, (S.levels && S.levels[id]) || startLevelFor(id)); }
 function setLevelOf(id, v){ (S.levels || (S.levels = {}))[id] = v; }
 function isEnabled(id){ return (S.enabled || {})[id] !== false; }
 function setEnabled(id, on){ (S.enabled || (S.enabled = {}))[id] = !!on; }

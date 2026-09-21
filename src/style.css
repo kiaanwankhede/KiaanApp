@@ -27,7 +27,24 @@
   .screen.on{display:flex}
 
   /* ---------- HOME ---------- */
-  #home{align-items:center;justify-content:center;gap:28px;padding:24px}
+  /* The home screen scrolls. It didn't need to at three activities; at nine —
+     seven in the plain row plus a section heading, two date headings and two
+     Toondemy cards — the content is taller than a tablet, and with the screen
+     absolutely positioned inside body{overflow:hidden} the overflow was
+     clipped with no way to get to it: four of the nine games could not be
+     started at all on a 768x1024 tablet.
+
+     Centred WHEN IT FITS and scrollable when it doesn't, which plain
+     justify-content:center cannot do — centring an overflowing flex column
+     pushes the top out of reach as well. So #home scrolls from the top and
+     #homeScroll carries min-height:100%, which fills the screen (and centres
+     inside itself) while the content is short, and simply grows past it once
+     there is more. */
+  #home{align-items:stretch;justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  #homeScroll{
+    flex:0 0 auto;min-height:100%;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:28px;padding:24px;
+  }
   .app-title{font-size:clamp(28px,6vw,44px);font-weight:bold;letter-spacing:.5px;margin:0}
   .app-sub{color:var(--ink-soft);margin:-16px 0 0;font-size:15px}
   #homeCards{display:flex;flex-direction:column;align-items:center;gap:28px}

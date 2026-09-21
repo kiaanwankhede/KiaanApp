@@ -388,6 +388,31 @@ and Next are the one deliberate departure from "play never stops",
 because unlike every other activity here, a Toondemy game actually has an
 end, the same way its source video does.
 
+**Nothing deferred outlives the session it belonged to.** A parent taps back
+whenever they need to — including the half second between a right answer and
+whatever the shell had queued next, and while a finger is still holding a tile.
+So every callback and timer that runs later asks `sessionGuard()`
+(src/50-session.js) whether it is still wanted: the whole `api` handed to a
+round, the timer carrying play into the next round or the reward, and the beat
+between a one-shot game's scenes. Both halves came from real failures found by
+driving the page, not from theory: letting go of a dragged tile after tapping
+back threw outright (`Cannot set properties of null`), and tapping back the
+instant a Word find round solved put the reward screen up *over* the "N right
+today" screen half a second later, overriding the parent's own tap — and since
+Word find rewards every round, that window was open on every single round of
+it. `endSession()` deliberately keeps `sess` alive to write its record, so it
+marks it `over`; going home nulls it. `tests/leaving.test.js` holds both cases
+and fails if the guard is taken out.
+
+**A level is clamped to the ladder that exists now.** Ladders do get shorter
+between releases — Sky went from 18 levels to a single fixed game — and
+`progress.best` remembers the old frontier. Every activity clamps internally so
+nothing crashes, but unclamped in `levelOf()` it still showed a parent "Level
+97/40" and left mastery unable to advance him ever again (`curLevel < maxLevel`
+false forever) until someone noticed and tapped the stepper. Clamped on the way
+out rather than healed in storage, so a ladder that grows back can still pick
+up the best he actually reached.
+
 **Mastery: 80% independent across two consecutive blocks moves up; under 50%
 in one block moves down.** Each round counts one of three ways: answered with
 no miss before the hand appeared → *independent*, counts toward moving up;
@@ -478,6 +503,24 @@ condition and has to travel with the pictures.
 
 ---
 
+**The home screen scrolls, and is centred only while it fits.** It didn't need
+to at three activities. At nine — seven in the plain row plus a section
+heading, two date headings and two Toondemy cards — the content is taller than
+a tablet, and because each screen is absolutely positioned inside
+`body{overflow:hidden}` the overflow was simply clipped: measured in a real
+browser, **four of the nine games could not be started at all** on a 768x1024
+tablet. Plain `justify-content:center` cannot fix that, because centring an
+overflowing flex column pushes its *top* out of reach as well — which is why
+the very first card was among the unreachable ones. So `#home` scrolls from the
+top and `#homeScroll` carries `min-height:100%`, which fills the screen and
+centres inside itself while the content is short, then simply grows past it.
+`#gear` stays outside the wrapper so it keeps its corner instead of scrolling
+away. Shrinking the cards instead was the wrong trade: fitting nine plus the
+headings into 1024px needs roughly 150px cards, and he has to be able to hit
+them.
+
+---
+
 ## Tablet notes
 
 The app can't block the home button — browsers prevent that. What it does do:
@@ -499,7 +542,11 @@ so it launches with no browser UI.
 
 ## Where this is heading
 
-Many more activities. At roughly a dozen the home screen stops working as a
-grid of cards and the app should start choosing what he plays — interleaving
-across activities rather than blocking one at a time, which generalises better.
-That needs the shell to own progress across all activities, which it now does.
+Many more activities. This file used to predict the card grid would stop
+working at roughly a dozen; it actually stopped fitting a tablet at nine, and
+the grid now scrolls (see the rule above). Scrolling buys room, not a solution:
+somewhere past a dozen cards, picking from a long scrolling list stops being a
+reasonable thing to hand a 4-year-old, and the app should start choosing what he
+plays — interleaving across activities rather than blocking one at a time, which
+generalises better. That needs the shell to own progress across all activities,
+which it now does.

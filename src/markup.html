@@ -2,13 +2,19 @@
 
   <!-- HOME -->
   <section id="home" class="screen on">
-    <h1 class="app-title">Kiaan&rsquo;s App</h1>
-    <p class="app-sub">Pick something to do</p>
-    <!-- activity cards are generated from the registry in 70-home.js -->
-    <div id="homeCards"></div>
-    <div class="homerow">
-      <label>Assisted mode</label>
-      <div id="assistToggleHome"></div>
+    <!-- #home is the scroller and #homeScroll is what scrolls inside it: nine
+         cards plus the section headings are taller than a tablet, and before
+         this the overflow was simply clipped away with no way to reach it.
+         #gear stays outside so it keeps its corner instead of scrolling off. -->
+    <div id="homeScroll">
+      <h1 class="app-title">Kiaan&rsquo;s App</h1>
+      <p class="app-sub">Pick something to do</p>
+      <!-- activity cards are generated from the registry in 70-home.js -->
+      <div id="homeCards"></div>
+      <div class="homerow">
+        <label>Assisted mode</label>
+        <div id="assistToggleHome"></div>
+      </div>
     </div>
     <button id="gear">⚙️</button>
   </section>

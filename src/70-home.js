@@ -134,6 +134,11 @@ function goHome(){
   show("#home");
 }
 function endSession(){
+  // The session is over, but sess stays alive to write its record — so mark it,
+  // or the timers still in flight from the last right answer (see
+  // sessionGuard() in 50-session.js) would go on firing into the screen the
+  // parent has just left.
+  if(sess) sess.over = true;
   progress.sessions.push({
     at: new Date().toISOString(), kind: sess.kind,
     level: levelOf(sess.kind),
