@@ -8,9 +8,11 @@
  * right, sits somewhere else, and (before the uniqueness check existed) was a
  * coin flip between "found it" and a miss for a correct answer.
  *
- * Then the page: the photograph and spelling above the grid, a real sweep
- * across the letters, and the reward being the word he just found rather than
- * a stranger from the shuffle bag.
+ * Then the page: the letters above the grid and NO photograph beside them (it
+ * is the reward for finding them, and showing it up front gave away its own
+ * reveal), the cue that teaches the game on the first levels and fades, a real
+ * sweep across the letters, and the reward being the word he just found rather
+ * than a stranger from the shuffle bag.
  */
 const fs = require("fs");
 const path = require("path");
@@ -28,7 +30,8 @@ const PHOTO_PRELUDE = "const PHOTO_PACK = " +
   JSON.stringify(PHOTO_KEYS.reduce((o, k) => ((o[k] = "data:,"), o), {})) + ";";
 
 const T = pureContext(["30-rewards.js", "activities/wordfind.js"],
-  ["WF_STAGES", "WF_LEVELS", "wfPlan", "wfWords", "wfBuild", "wfCount", "wfRuns", "wfAt", "EMOJI_PACK", "WORDFIND"],
+  ["WF_STAGES", "WF_LEVELS", "wfPlan", "wfWords", "wfBuild", "wfCount", "wfRuns", "wfAt", "EMOJI_PACK", "WORDFIND",
+   "WF_CUE_SHAPE", "WF_CUE_START"],
   PHOTO_PRELUDE);
 
 const R = new Runner("wordfind");
@@ -47,6 +50,13 @@ T.WF_STAGES.forEach((s) => {
   // the hard fillers are earned, not handed out at the bottom of the ladder
   if (s.len <= 4) check(s.steps.indexOf("near") < 0, `${s.len}-letter stage: no near-miss runs this early`);
 });
+
+/* The teaching cue is meant to be the first few levels, not a permanent crutch:
+   it fades by absolute level, so a longer word never re-teaches the game. */
+check(T.WF_CUE_SHAPE >= 1 && T.WF_CUE_START > T.WF_CUE_SHAPE,
+  "the cue fades in order — the whole word marked, then only its first letter");
+check(T.WF_CUE_START <= 6,
+  `and it is gone within the first few levels rather than propping him up all the way (last cued level ${T.WF_CUE_START})`);
 
 /* ---- coverage: the whole saved vocabulary is in play ---- */
 const eligible = T.EMOJI_PACK.map((p) => p[0]).filter((w) => !/[^A-Z]/.test(w) && w.length >= 3);
@@ -133,13 +143,40 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   click(doc.querySelector('.playbtn[data-kind="wordfind"]'));
   const grid = $("#stage .wfgrid");
   check(!!grid, "a grid of letters is drawn");
-  check(!!$("#stage .wfshot"), "with the photograph of the word above it");
+  check(!$("#stage img") && !$("#stage .wfshot"),
+    "and NO photograph above it — the picture is what finding the word earns, not a clue that gives away its own reveal");
   const spell = Array.from(doc.querySelectorAll("#stage .wfspell span"));
-  const word = spell.map((s) => s.textContent).join("");
-  check(spell.length >= 3 && /^[A-Z]+$/.test(word), `and its spelling to match against (${word})`);
+  let word = spell.map((s) => s.textContent).join("");
+  check(spell.length >= 3 && /^[A-Z]+$/.test(word), `the letters to match are on screen (${word})`);
+  check(doc.querySelectorAll("#stage .wfcell.tip").length === word.length,
+    "level 1 marks the word's own cells — with no picture to go on, the first levels have to teach what the game is");
 
-  const cols = Number(grid.style.getPropertyValue("--wf-cols"));
-  const cells = Array.from(grid.children);
+  /* …and it really does fade. Back home, step the level, play again. */
+  const home = () => {
+    click($("#back"));
+    const done = $("#doneHome");
+    if (done) click(done);
+  };
+  const tips = () => doc.querySelectorAll("#stage .wfcell.tip").length;
+  let onLevel = 1;
+  const playLevel = (want) => {
+    home();
+    const plus = doc.querySelector('.lvbtn[data-kind="wordfind"][data-dir="1"]');
+    for (; onLevel < want; onLevel++) click(plus);
+    click(doc.querySelector('.playbtn[data-kind="wordfind"]'));
+  };
+  playLevel(T.WF_CUE_SHAPE + 1);
+  check(tips() === 1, `level ${T.WF_CUE_SHAPE + 1}: only the first letter is marked now — it starts here, read on`);
+  playLevel(T.WF_CUE_START + 1);
+  check(tips() === 0, `level ${T.WF_CUE_START + 1}: no cue at all — by now he knows what the game is`);
+
+  // and play out this uncued level for real
+  const grid2 = $("#stage .wfgrid");
+  const cols = Number(grid2.style.getPropertyValue("--wf-cols"));
+  const cells = Array.from(grid2.children);
+  // a new level is a new word — everything below is about THIS round
+  word = Array.from(doc.querySelectorAll("#stage .wfspell span")).map((x) => x.textContent).join("");
+  check(/^[A-Z]{3,}$/.test(word), `and its letters are on screen to match (${word})`);
   check(cells.length % cols === 0 && cells.length / cols >= 4, "the grid is a whole number of rows");
   check(cells.every((c) => /^[A-Z]$/.test(c.textContent)), "every cell shows one letter");
   check(doc.querySelectorAll("#tokens .tok").length === 1,
@@ -147,11 +184,11 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   // a sweep needs geometry; jsdom has none, so give the grid a rect of its own
   const rows = cells.length / cols;
-  grid.getBoundingClientRect = () => ({ left: 0, top: 0, width: cols * 10, height: rows * 10, right: cols * 10, bottom: rows * 10, x: 0, y: 0 });
+  grid2.getBoundingClientRect = () => ({ left: 0, top: 0, width: cols * 10, height: rows * 10, right: cols * 10, bottom: rows * 10, x: 0, y: 0 });
   const pt = (type, r, c) => {
     const e = new window.Event(type, { bubbles: true, cancelable: true });
     e.pointerId = 1; e.clientX = c * 10 + 5; e.clientY = r * 10 + 5;
-    grid.dispatchEvent(e);
+    grid2.dispatchEvent(e);
   };
   const at = (r, c) => cells[r * cols + c].textContent;
 

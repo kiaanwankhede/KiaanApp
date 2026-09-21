@@ -174,19 +174,14 @@
   .ninecount span.on{opacity:1;color:var(--ink)}
 
   /* ---------- WORD FIND ---------- */
-  /* The target: the photograph he knows the word by, and the letters to match
-     under it. Both stay on screen the whole round. */
+  /* The target is the letters to match, and nothing else — no photograph here,
+     because that is what finding them earns. Bigger than the grid's own
+     letters, so which row is the thing to match is never in doubt. */
   .wftarget{display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1.4vh,12px)}
-  .wfshot{
-    width:clamp(72px,16vh,132px);aspect-ratio:1/1;border-radius:18px;overflow:hidden;
-    background:var(--card);box-shadow:var(--shadow);display:grid;place-items:center;
-  }
-  .wfshot img{width:100%;height:100%;object-fit:cover}
-  .wfshot .em{font-size:clamp(40px,10vh,84px);line-height:1}
-  .wfspell{display:flex;gap:clamp(2px,.8vw,7px);flex-wrap:wrap;justify-content:center}
+  .wfspell{display:flex;gap:clamp(3px,1vw,9px);flex-wrap:wrap;justify-content:center}
   .wfspell span{
-    min-width:clamp(20px,4.4vw,30px);padding:2px 4px;border-radius:8px;text-align:center;
-    font-weight:700;font-size:clamp(15px,3.4vw,24px);color:var(--ink);background:var(--card);
+    min-width:clamp(26px,5.6vw,40px);padding:6px 6px;border-radius:12px;text-align:center;
+    font-weight:700;font-size:clamp(19px,4.4vw,32px);color:var(--ink);background:var(--card);
     box-shadow:var(--shadow);transition:background-color .25s ease,color .25s ease;
   }
   .wfspell span.won{background:var(--good);color:#fff}
@@ -209,6 +204,10 @@
   .wfcell.won{background:var(--good);color:#fff}
   .wfcell.dim{opacity:.22}
   .wfcell.pick{outline:3px solid var(--accent);outline-offset:2px}
+  /* The teaching cue on the first few levels: quiet enough to read as "look
+     here" rather than as something already answered, and plainly not the solid
+     fill his own sweep makes. */
+  .wfcell.tip{background:#e4edff;box-shadow:var(--shadow),inset 0 0 0 2px #b9cff8}
 
   /* ---------- ORDER (the size staircase) ---------- */
   .seq.steps{align-items:flex-end;gap:clamp(3px,.8vw,8px)}

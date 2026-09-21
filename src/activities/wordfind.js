@@ -1,15 +1,29 @@
 /* ============================ ACTIVITY: WORD FIND ============================
-   A photograph and its spelling sit at the top; the same letters are hidden
-   somewhere in a grid below. He drags across them to find the word.
+   A word's letters sit at the top; the same letters are hidden somewhere in a
+   grid below. He drags across them to find it — and finding it is what shows
+   him the photograph of what the word says.
 
    THIS IS LETTER MATCHING, NOT READING
    -------------------------------------
-   He is four and cannot read, so nothing here asks him to. The target is on
-   screen the whole time — the photograph so he knows what the word is, and the
-   word's letters right under it so he has the shapes to match. The task is
-   visual discrimination of letter forms and left-to-right scanning, which is
-   what comes before reading; the photograph is what stops it being an abstract
-   shape-matching drill and makes it about the word.
+   He is four and cannot read, so nothing here asks him to. The letters he has
+   to match are on screen the whole time, right above the grid, so nothing is
+   being remembered — the task is visual discrimination of letter forms and
+   left-to-right scanning, which is what comes before reading.
+
+   THE PICTURE IS THE REVEAL, NOT THE PROMPT
+   ------------------------------------------
+   The photograph is deliberately NOT shown above the grid. The first version
+   put it there, reasoning that it kept the task about the word rather than
+   about abstract shapes — but it also sat there giving away its own reveal for
+   the whole round, so the reward screen had nothing left to tell him. Now the
+   word is a mystery made of letters until he finds it, and then the picture
+   says what he found. The word still gets attached to the thing in the world
+   it names, which is the whole point of the reward pack; it just happens in
+   the other order.
+
+   The cost of that is real and accepted: during play this IS closer to shape
+   matching, because a four-year-old reads nothing in D-O-G. The early-level
+   cue below is what makes that survivable — see wfRender().
 
    WHY THE WHOLE VOCABULARY
    ------------------------
@@ -90,6 +104,10 @@ WF_STAGES.forEach((stage, si)=>{
 function wfPlan(level){
   return WF_LEVELS[Math.max(0, Math.min(WF_LEVELS.length - 1, level - 1))];
 }
+
+/* How long the game teaches itself — see the cue in wfRender(). */
+const WF_CUE_SHAPE = 2;        // up to here: the whole word is marked
+const WF_CUE_START = 4;        // up to here: only its first letter is
 
 const WF_ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -235,15 +253,12 @@ function wfRender(api, level){
 
   st.appendChild(el("div","prompt-line","Find the word"));
 
-  /* The target: the photograph, and the letters to match under it. Both stay
-     on screen the whole round — he is matching shapes he can see, not
-     remembering a word he was shown. */
-  const pic = pictureForWord(word);
+  /* The target is the letters, and only the letters. The photograph is NOT
+     shown here — it is what he gets for finding them, and a picture sitting
+     above the grid the whole time gives away its own reveal. He still has
+     everything he needs in front of him: the shapes to match are right there,
+     so nothing is being remembered. */
   const target = el("div","wftarget");
-  const shot = el("div","wfshot");
-  if(pic.type === "img"){ const i = el("img"); i.src = pic.url; shot.appendChild(i); }
-  else shot.appendChild(el("div","em", pic.em));
-  target.appendChild(shot);
   const spell = el("div","wfspell");
   const spellCells = word.split("").map(ch=>{
     const s = el("span", null, ch);
@@ -269,6 +284,29 @@ function wfRender(api, level){
   const nodeAt = (p)=> nodes[p.r][p.c];
   const answerNodes = built.answer.map(nodeAt);
   let done = false, anchor = null, run = [];
+
+  /* Teaching the game, on the first few levels only. With no picture above the
+     grid, a row of letters and a board of letters doesn't say what to DO with
+     either — so the earliest levels quietly mark where the word is and he
+     learns the sweep by making it. Then the support fades, the same way Order
+     takes pieces out of its staircase and Trace narrows its path:
+
+       levels 1-2   the word's cells are marked      — this is your word, here
+       levels 3-4   only its first cell is marked    — it starts here, read on
+       level 5 on   nothing
+
+     It fades by absolute level, not per stage: once he knows what the game is
+     he knows it, and a longer word is not a new game needing to be taught
+     again.
+
+     Note this overlaps the first stage's own steps, so the decoy-start guard
+     on level 3 doesn't really bite — the cue points straight at which of the
+     several D's is the right one. That is on purpose rather than a hole in the
+     guard: levels 1-4 are teaching levels, and the guards start mattering at
+     level 5 when the cue is gone. */
+  const cue = level <= WF_CUE_SHAPE ? "shape" : level <= WF_CUE_START ? "start" : "none";
+  if(cue === "shape") built.answer.forEach(p => nodeAt(p).classList.add("tip"));
+  else if(cue === "start") nodeAt(built.answer[0]).classList.add("tip");
 
   const paint = (list, cls)=> list.forEach(p => nodeAt(p).classList.add(cls));
   const clearRun = ()=>{
@@ -308,6 +346,7 @@ function wfRender(api, level){
   function found(){
     done = true;
     clearRun();
+    answerNodes.forEach(n => n.classList.remove("tip"));
     answerNodes.forEach(n => n.classList.add("won"));
     spellCells.forEach(s => s.classList.add("won"));
     /* The reward is this word, not a random one from the bag — in this game
@@ -400,9 +439,16 @@ const WORDFIND = {
       filler:  " The spare cells are filled from the word's own letters, so its letters no longer stand out.",
       near:    " One run starts like the word and then changes, so the end has to be checked too."
     }[p.step];
-    return "He sees a photograph and its spelling, then finds the same letters " + dirs +
+    const cue = level <= WF_CUE_SHAPE
+      ? " While he is learning the game the word's own cells are marked for him."
+      : level <= WF_CUE_START
+        ? " Only the word's first letter is marked now — he reads on from there."
+        : "";
+    return "He sees a word's letters, then finds the same letters " + dirs +
            " (" + p.stage.cols + " by " + p.stage.rows + ", " + words + " words this length)." +
-           " Never backwards or diagonally — only the way reading goes." + extra;
+           " The photograph of what the word says is the reward for finding it, not a clue" +
+           " sitting above the grid. Never backwards or diagonally — only the way reading goes." +
+           cue + extra;
   },
 
   startRound(level, api){ wfRender(api, level); }

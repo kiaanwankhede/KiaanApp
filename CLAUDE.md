@@ -55,8 +55,9 @@ src/
     count.js       "how many?" — match amounts, 21 levels in 6 stages, up to 10
     trace.js       "follow the line" — strokes, then numbers 0–9, then smaller, 30 levels
     match.js       "what goes with it?" — association pairs, 22 levels
-    wordfind.js    "find the word" — a photo and its spelling, the same letters hidden in
-                   a grid; works through the whole saved vocabulary, 38 levels in 9 stages
+    wordfind.js    "find the word" — a word's letters, the same letters hidden in a grid,
+                   the photo of what it says as the reward for finding them; works through
+                   the whole saved vocabulary, 38 levels in 9 stages
     sky.js         "follow the line" again, dressed as reaching a real thing — three rays,
                    three raindrops, three kite strings, three flight paths, one fixed game
     nine.js        "fill all nine" — bees into hives, ladybirds onto leaves, Sorting's
@@ -207,14 +208,33 @@ that jumping ahead, cutting across a circle or going round the wrong way never
 finishes a shape.
 
 **Word find is letter matching, not reading.** He cannot read, so nothing in
-it asks him to. The photograph and the word's letters both stay on screen the
-whole round — the photograph so he knows which word he is after, the letters so
-he has the shapes to match against the grid. That makes it visual
-discrimination of letter forms and left-to-right scanning, which is what comes
-before reading; the photograph is what stops it being an abstract
-shape-matching drill and keeps it about the word. Never take the target off
-screen to "make him remember it" — that turns a pre-reading task into a memory
-test and he will simply stop being able to do it.
+it asks him to. The word's letters stay on screen above the grid the whole
+round, so nothing is being remembered — the task is visual discrimination of
+letter forms and left-to-right scanning, which is what comes before reading.
+Never take those letters off screen to "make him remember the word": that turns
+a pre-reading task into a memory test and he will simply stop being able to do
+it.
+
+**The photograph is Word find's reveal, not its prompt.** The first version put
+the photo above the grid the whole round, reasoning that it kept the task about
+the word rather than about abstract shapes. Playing it showed the cost: the
+picture sat there giving away its own reveal, so by the time the reward screen
+came up it had nothing left to tell him and the reward was no reward. Now the
+word is a mystery made of letters until he finds it, and finding it is what
+shows him what it says. The word still gets attached to the thing in the world
+it names — the whole point of the photo pack — just in the other order. Don't
+put the picture back above the grid.
+
+**So the first four levels teach the game instead.** With no picture up there,
+a row of letters over a board of letters doesn't say what to do with either, and
+the honest cost of holding the photo back is that during play this really is
+closer to shape matching. The fix is the same fading support the rest of the app
+uses: levels 1–2 quietly mark the word's own cells (this is your word, here),
+levels 3–4 mark only its first cell (it starts here, read on), and from level 5
+there is nothing. It fades by absolute level rather than per stage, because once
+he knows what the game is he knows it — a longer word is not a new game. The cue
+does neuter the first stage's decoy-start guard while it is up; levels 1–4 are
+teaching levels and the guards start mattering at level 5.
 
 **Word find works through the saved vocabulary, not a word list of its own.**
 The pool is EMOJI_PACK — the same words the reward screen teaches, built from
