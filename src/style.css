@@ -160,6 +160,18 @@
   /* the creature perches high on the hive rather than dead centre, so the
      hive underneath still reads once something has landed on it */
   .numslot .tile{position:absolute;inset:0;margin:auto;background:none;box-shadow:none;transform:translateY(-8%)}
+  /* The counting strip: the numbers 1-9 in a row, lighting up one per creature
+     he lands, so the last lit number is how many he has done and the pale ones
+     are how many are left. No animation beyond the colour arriving. */
+  .ninecount{display:flex;gap:clamp(4px,1.1vw,10px);justify-content:center;align-items:center;flex-wrap:wrap;max-width:min(94vw,520px)}
+  .ninecount span{
+    width:clamp(26px,5.6vw,38px);aspect-ratio:1/1;border-radius:50%;display:grid;place-items:center;
+    font-weight:700;font-size:clamp(13px,2.7vw,19px);line-height:1;color:var(--ink-soft);background:var(--card);
+    box-shadow:var(--shadow);opacity:.55;transition:opacity .2s ease,color .2s ease,background-color .2s ease;
+  }
+  /* Lit is a dark numeral on a wash of the theme's colour, not white-on-colour:
+     the bee theme's amber is too light to carry white text at this size. */
+  .ninecount span.on{opacity:1;color:var(--ink)}
 
   /* ---------- ORDER (the size staircase) ---------- */
   .seq.steps{align-items:flex-end;gap:clamp(3px,.8vw,8px)}

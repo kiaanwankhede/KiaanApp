@@ -261,6 +261,22 @@ slot is drawn as the hive or the leaf it is, flat and plain: nine blank
 boxes asked him to take "hive" from the prompt line on trust, which a
 4-year-old who can't read cannot do.
 
+**Nine counts out loud on screen, because filling nine slots isn't the same
+as knowing you filled nine.** Under the badge is a strip of the numbers 1 to
+9, and one more lights up per creature he lands. That one element does three
+jobs: the last lit number is how many he has done, the pale ones are how many
+are left, and the row itself is the number line the lesson is about — ending
+on a 9 that matches the badge above it. Three things about it are deliberate.
+It lights **strictly left to right, whichever slot he dropped into** — he can
+fill any open leaf, so numbering the leaves in the order he chose would
+scatter 1…9 around the screen and be uncountable, and counting up a straight
+row is the thing being taught. A wrong drop counts nothing, so the number
+only ever means creatures actually placed. And each scene counts its own nine
+from zero. The badge stays the lesson's target and the strip stays the tally —
+don't merge them into one number, and note the lit pip is a dark numeral on a
+wash of the theme colour rather than white on solid: the bee theme's amber is
+far too light to carry white text at this size.
+
 **A one-shot game's reward waits for a tap, not a timer, and offers Repeat
 and Next.** Every other activity shows the reward after a whole block of
 correct rounds (`S.rewardEvery`/`itemsPerSession`) and carries straight on

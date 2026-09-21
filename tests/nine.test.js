@@ -3,7 +3,8 @@
  * covered generically in progress.test.js. This checks what's actually new
  * here: nine slots and the right item/decoy counts for each scene, and that
  * a real round on the page chains both scenes — bees, then ladybirds —
- * before it counts as solved, not just the first one. */
+ * before it counts as solved, not just the first one, and that the counting
+ * strip really counts what he has done. */
 const { pureContext, bootApp, Runner } = require("./_harness");
 const T = pureContext(["activities/nine.js"],
   ["NINE_N", "NINE_DECOYS", "NINE_SPARE", "NINE_THEMES", "NINE_ORDER", "buildNineScene"]);
@@ -68,11 +69,21 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     "tray holds the nine needed, the spares and the decoys");
   check(/Scene 1 of 2/.test($("#lvWatermark").textContent), "the corner says which scene he's on, since there are no levels to report");
 
-  const fillScene = () => {
-    for (let n = 0; n < 9; n++) {
-      const opts = Array.from(doc.querySelectorAll("#stage .tray .opt .tile"));
+  const pips = () => Array.from(doc.querySelectorAll("#stage .ninecount span"));
+  const lit = () => pips().filter((p) => p.classList.contains("on")).length;
+  check(pips().length === 9, "the counting strip is the numbers 1 to 9");
+  check(pips().map((p) => p.textContent).join("") === "123456789", "in order, so it reads as counting up");
+  check(lit() === 0, "none lit before he has done anything — the count starts at nothing, not at nine");
+
+  const firstCorrect = () => Array.from(doc.querySelectorAll("#stage .tray .opt .tile")).find((t) => t._item.correct);
+  const fillScene = (verify) => {
+    let placed = doc.querySelectorAll("#stage .numslot[data-full='1']").length;
+    for (;;) {
       const slots = Array.from(doc.querySelectorAll("#stage .numslot.dropzone")).filter((b) => b.dataset.full !== "1");
-      dropOn(window, opts.find((t) => t._item.correct), slots[0]);
+      if (!slots.length) break;
+      dropOn(window, firstCorrect(), slots[0]);
+      placed++;
+      if (verify) check(lit() === placed, `the strip reads ${placed} once ${placed} are on the leaves`);
     }
   };
 
@@ -86,8 +97,19 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     "after a couple of tries the decoys dim — the same help every other game gives");
   dropOn(window, decoy, openSlot);
   check(!!doc.querySelector("#stage .tray .opt.pick"), "and a try later a right one is outlined");
+  check(lit() === 0, "a wrong drop counts nothing — the strip only counts creatures actually placed");
 
-  fillScene();
+  /* The strip counts how many he has done, not which slot he picked: he can
+     drop into any open leaf, so dropping into the LAST one still lights the
+     first number. Counting up a scattered 1..9 would be uncountable. */
+  const lastSlot = Array.from(doc.querySelectorAll("#stage .numslot.dropzone")).pop();
+  dropOn(window, firstCorrect(), lastSlot);
+  check(lastSlot.dataset.full === "1", "the last leaf took it");
+  check(lit() === 1 && pips()[0].classList.contains("on"),
+    "and the FIRST number lit, not the ninth — the strip counts creatures, not positions");
+
+  fillScene(true);
+  check(lit() === 9, "all nine lit once every leaf is full");
   check(doc.querySelectorAll("#tokens .tok.full").length === 0, "nine bees placed, but no token yet — the ladybird scene is still to come");
   check(doc.querySelectorAll("#stage .numslot.dropzone:not([data-full])").length === 0,
     "the finished scene stays on screen for a beat rather than being wiped mid-pop");
@@ -95,6 +117,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await sleep(1200);                                     // the shell's beat between scenes
   check(/Scene 2 of 2/.test($("#lvWatermark").textContent), "then the corner moves on to scene two");
   check(/leaves/.test($("#stage .prompt-line").textContent), "and it's the ladybird scene now, not bees again");
+  check(lit() === 0, "and its count starts over at nothing — each scene is its own nine");
 
   fillScene();
   check(doc.querySelectorAll("#tokens .tok.full").length === 1, "the ninth ladybird — the last of the second scene — finishes the round and earns the token");

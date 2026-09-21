@@ -102,6 +102,27 @@ function renderNineScene(api, themeKey){
   badge.appendChild(itemNode({k:"text", text:"9", color:r.theme.tint}, 56));
   st.appendChild(badge);
 
+  /* The counting strip. The badge above says what we're aiming for; this says
+     how many are done so far, and the pale numbers say how many are left. */
+  const strip = el("div","ninecount"), pips = [];
+  for(let i=1;i<=NINE_N;i++){
+    const pip = el("span","", String(i));
+    pips.push(pip);
+    strip.appendChild(pip);
+  }
+  st.appendChild(strip);
+  /* Lit strictly left to right, however he filled the slots: he can drop into
+     any open leaf, so numbering the leaves themselves in the order he chose
+     would scatter 1..9 around the screen and be uncountable. Counting up a
+     straight row is the thing being taught. */
+  const countTo = (n)=> pips.forEach((pip, i)=>{
+    const on = i < n;
+    pip.classList.toggle("on", on);
+    pip.style.background = on ? r.theme.tint + "33" : "";
+    pip.style.boxShadow = on ? "inset 0 0 0 2px " + r.theme.tint : "";
+  });
+  countTo(0);
+
   const slotRow = el("div","numslots");
   for(let i=0;i<NINE_N;i++){
     const d = el("div","numslot dropzone");
@@ -131,7 +152,9 @@ function renderNineScene(api, themeKey){
         wrap.remove();
         api.refocus();
         clearHelp();
-        if(--left === 0) api.solved(themeKey);
+        left--;
+        countTo(NINE_N - left);
+        if(left === 0) api.solved(themeKey);
         return;
       }
       // a decoy: glides back, and the help escalates exactly as it does
