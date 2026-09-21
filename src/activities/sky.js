@@ -78,7 +78,7 @@ const SKY = {
   id: "sky",
   name: "Emergent writing slanting lines",
   section: "Toondemy Games",
-  date: "2025-01-02",
+  date: "2026-01-02",
   oneShot: true,
   icon: "☀️🪁",
   maxLevel: ()=> 1,
