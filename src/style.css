@@ -173,6 +173,42 @@
      the bee theme's amber is too light to carry white text at this size. */
   .ninecount span.on{opacity:1;color:var(--ink)}
 
+  /* ---------- WORD FIND ---------- */
+  /* The target is the letters to match, and nothing else — no photograph here,
+     because that is what finding them earns. Bigger than the grid's own
+     letters, so which row is the thing to match is never in doubt. */
+  .wftarget{display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1.4vh,12px)}
+  .wfspell{display:flex;gap:clamp(3px,1vw,9px);flex-wrap:wrap;justify-content:center}
+  .wfspell span{
+    min-width:clamp(26px,5.6vw,40px);padding:6px 6px;border-radius:12px;text-align:center;
+    font-weight:700;font-size:clamp(19px,4.4vw,32px);color:var(--ink);background:var(--card);
+    box-shadow:var(--shadow);transition:background-color .25s ease,color .25s ease;
+  }
+  .wfspell span.won{background:var(--good);color:#fff}
+
+  /* The grid sizes itself from its column count, so a 4-wide grid and a
+     13-wide one both fill the same width rather than the cells staying put and
+     the long words running off the screen. */
+  .wfgrid{
+    display:grid;grid-template-columns:repeat(var(--wf-cols),1fr);
+    gap:clamp(2px,.6vw,6px);width:min(94vw,620px);
+    touch-action:none;                       /* the drag across it is ours, not a scroll */
+  }
+  .wfcell{
+    aspect-ratio:1/1;border-radius:10px;background:var(--card);box-shadow:var(--shadow);
+    display:grid;place-items:center;font-weight:700;color:var(--ink);
+    font-size:clamp(11px,min(3.6vw,calc(52vw / var(--wf-cols))),26px);
+    transition:background-color .15s ease,color .15s ease,opacity .2s ease;
+  }
+  .wfcell.on{background:var(--accent);color:#fff}
+  .wfcell.won{background:var(--good);color:#fff}
+  .wfcell.dim{opacity:.22}
+  .wfcell.pick{outline:3px solid var(--accent);outline-offset:2px}
+  /* The teaching cue on the first few levels: quiet enough to read as "look
+     here" rather than as something already answered, and plainly not the solid
+     fill his own sweep makes. */
+  .wfcell.tip{background:#e4edff;box-shadow:var(--shadow),inset 0 0 0 2px #b9cff8}
+
   /* ---------- ORDER (the size staircase) ---------- */
   .seq.steps{align-items:flex-end;gap:clamp(3px,.8vw,8px)}
   /* Bars standing in the staircase lose their card: with one white box per bar

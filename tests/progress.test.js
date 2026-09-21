@@ -174,12 +174,51 @@ function traceTurn(win, withMiss) {
   go("pointerup", s.pts[s.pts.length - 1]);
 }
 
+/* Word find isn't a drop either: it's a sweep across a run of grid cells. The
+   hint points at the word's first cell, and the spelling above the grid says
+   what the word is, so the run can be worked out from the page the same way he
+   works it out by eye. A wrong sweep is any two adjacent cells — the shortest
+   word in the pool is three letters, so a two-cell run can never be right. */
+function wordfindTurn(win, withMiss) {
+  const d = win.document;
+  const grid = d.querySelector("#stage .wfgrid");
+  const cells = Array.from(grid.children);
+  const cols = Number(grid.style.getPropertyValue("--wf-cols"));
+  const rows = cells.length / cols;
+  grid.__rect = { left: 0, top: 0, width: cols * 10, height: rows * 10 };
+  const word = Array.from(d.querySelectorAll("#stage .wfspell span")).map((s) => s.textContent).join("");
+  const at = (r, c) => cells[r * cols + c].textContent;
+  const start = cells.indexOf(win.__hintTarget);
+  const r0 = Math.floor(start / cols), c0 = start % cols;
+  const across = c0 + word.length <= cols &&
+    Array.from({ length: word.length }, (_, i) => at(r0, c0 + i)).join("") === word;
+  const end = across ? { r: r0, c: c0 + word.length - 1 } : { r: r0 + word.length - 1, c: c0 };
+  const go = (type, p) => grid.dispatchEvent(pointer(win, type, p.c * 10 + 5, p.r * 10 + 5));
+  if (withMiss) {
+    go("pointerdown", { r: 0, c: 0 });
+    go("pointermove", { r: 0, c: 1 });
+    go("pointerup", { r: 0, c: 1 });
+  }
+  go("pointerdown", { r: r0, c: c0 });
+  go("pointermove", end);
+  go("pointerup", end);
+}
+
 async function play(win, kind, rounds, miss, waitForHand) {
   const T = win.__tns;
   let missed = -1, guard = 0;
   while (T.sess && T.sess.correct < rounds && guard++ < 5000) {
     await sleep(3);
     if (!win.document.querySelector("#play").classList.contains("on")) continue;   // reward screen
+    if (kind === "wordfind") {
+      const grid = win.document.querySelector("#stage .wfgrid");
+      if (!grid || !win.__hintTarget || Array.from(grid.children).indexOf(win.__hintTarget) < 0) continue;
+      if (waitForHand && !T.sess.hintShownThisRound) continue;
+      const doMiss = miss && missed !== T.sess.asked;
+      wordfindTurn(win, doMiss);
+      if (doMiss) missed = T.sess.asked;
+      continue;
+    }
     if (kind === "trace" || kind === "sky") {
       const board = win.document.querySelector("#stage .trace-board");
       if (!board || !board._trace || !board.querySelector(".trace-start")) continue;
@@ -224,7 +263,7 @@ const ONE_SHOT = new Set(["sky", "nine"]);
 
 (async () => {
   const allKinds = registeredActivities().map((c) =>
-    ({ PATTERNS: "pattern", SORTING: "sort", SERIATION: "seriate", COUNTING: "count", TRACING: "trace", MATCHING: "match", SKY: "sky", NINE: "nine" }[c]));
+    ({ PATTERNS: "pattern", SORTING: "sort", SERIATION: "seriate", COUNTING: "count", TRACING: "trace", MATCHING: "match", WORDFIND: "wordfind", SKY: "sky", NINE: "nine" }[c]));
   check(allKinds.every(Boolean), "every registered activity has a solver here");
   const kinds = allKinds.filter((k) => !ONE_SHOT.has(k));
   const allErrors = [];
