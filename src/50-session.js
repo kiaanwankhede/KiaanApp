@@ -13,7 +13,10 @@
        name:      "PATTERNS",              // home card title
        icon:      "🔷🔶🔷",                 // home card icon
        maxLevel:  () => 40,                // how tall its ladder is
-       levelLabel:(level) => "AB · Colour", // home card subtitle
+       levelLabel:(level) => "AB · Colour", // what this level is, in a few words;
+                                            // shown in Settings and in the session
+                                            // history (the home card shows only the
+                                            // level number — see src/70-home.js)
        settingsHint:(level) => "…",        // blurb under its Settings stepper
        startRound:(level, api) => { … },   // draw one round into api.stage
        section:   "Toondemy Games",        // optional — groups under this heading on

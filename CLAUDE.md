@@ -522,14 +522,38 @@ All of them are pale on purpose — the screen used to carry nine saturated blue
 PLAY pills, which were the loudest thing on it, and a wash at this lightness
 gives each tile an identity without raising the contrast of the page at all.
 
-Two details that look cosmetic and aren't. The tiles are four across a tablet
-rather than two, which halves the height of the page — nine 230px cards two-up
-were what made the list taller than the screen in the first place. And the
-level strip is a **fixed two-line box**: left to wrap freely, "AB · Colour"
-took one line and "What goes together · 2 choices" took three, so every strip
-was a different height and the rows of tiles sat ragged with the +/− buttons
-all at different heights. The full wording is in Settings; the strip is the
-glance version.
+**Everything on the home screen lines up on one left edge, in real columns.**
+The first pass centred each row, so seven tiles came out as four centred and
+then three centred under them: no two rows shared a column and the whole thing
+read as ragged. It is a CSS grid now (`repeat(auto-fill, minmax(140px,1fr))`),
+so every row shares the same columns and a short last row is ragged on the
+*right*, where a short row belongs — and the title, the subtitle, the section
+heading, the date and the first tile of every row all share one left edge
+(`tests/app.test.js` measures that in a browser, not by eye). The column is
+centred in the viewport rather than pinned to the screen edge, which keeps a
+landscape tablet balanced instead of leaving all the empty space on one side;
+on the portrait tablet it fills the width anyway. The block is anchored to the
+TOP, not floated in the vertical middle: once the grid fitted a tablet again,
+centring left it adrift in a field of empty space.
+
+**A tile is flat colour with a hairline edge, and the icon is a label on it,
+not the tile itself.** Pale tint plus a big soft drop shadow plus a 22px radius
+looked muddy and dated, and with no border the tints bled into the pale
+background. So: flat fill, `1px rgba(36,48,68,.08)` (one border value that works
+over every tint, so there is still one colour per game to maintain rather than
+two), 16px radius, almost no shadow. The icon went from 50px to 32px — at 50 it
+was a third of the box and the loud multicolour emoji swamped everything else
+in it.
+
+**The level strip under a tile is one line: `− Level 1/40 +`.** `levelLabel`'s
+wording used to print here as well, and two lines of 10px grey under every tile
+was the noisiest thing on the screen — it also made every strip a different
+height, so the rows sat ragged with the +/− buttons at different heights. The
+wording lives in Settings and the session history instead. The +/− are small on
+purpose, because they are the parent's control and must not compete with his
+tile, so their **hit area is grown past the visible button** (`.lvbtn::after`,
+inset -7px) rather than the button being made bigger — 26px is below any sane
+tap target.
 
 **The home screen scrolls, and is centred only while it fits.** It didn't need
 to at three activities. At nine — seven in the plain row plus a section

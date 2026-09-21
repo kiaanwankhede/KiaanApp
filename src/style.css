@@ -41,59 +41,79 @@
      inside itself) while the content is short, and simply grows past it once
      there is more. */
   #home{align-items:stretch;justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  /* Anchored to the top, not floating in the vertical middle. Once the grid
+     fitted a tablet again, centring left it adrift in a field of empty space
+     with no relationship to anything; a block that starts at a fixed top-left
+     is what reads as laid out rather than as dropped in. min-height keeps it
+     filling the screen so the background is continuous, and #home scrolls when
+     there are more games than fit. */
   #homeScroll{
     flex:0 0 auto;min-height:100%;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;gap:28px;padding:24px;
+    align-items:center;justify-content:flex-start;gap:18px;padding:34px 24px 28px;
   }
+  /* One content column, centred in the viewport, with everything in it flush
+     LEFT against the same edge — the heading, the date, the grid. The first
+     version centred each row instead, so seven tiles came out as four centred
+     then three centred under them: no two rows shared a column and the whole
+     thing read as ragged. Centring the column rather than pinning it to the
+     screen edge keeps a landscape tablet balanced instead of leaving all the
+     empty space on one side; on a portrait tablet it fills the width anyway,
+     so it is flush left in practice. */
+  #homeScroll > *{width:min(100%,700px)}
   /* Lighter than it was: a 44px bold near-black title was the heaviest thing on
      a screen whose job is to be calm, and it ate the top of a tablet. */
-  .app-title{font-size:clamp(22px,4vw,30px);font-weight:600;letter-spacing:.5px;margin:0;color:var(--ink)}
-  .app-sub{color:var(--ink-soft);margin:-18px 0 0;font-size:14px}
-  #homeCards{display:flex;flex-direction:column;align-items:center;gap:22px}
-  .cards{display:flex;gap:clamp(10px,2vw,18px);flex-wrap:wrap;justify-content:center;align-items:flex-start}
+  .app-title{font-size:clamp(20px,3.4vw,26px);font-weight:600;letter-spacing:.2px;margin:0;color:var(--ink);text-align:left}
+  .app-sub{color:var(--ink-soft);margin:-16px 0 0;font-size:13px;text-align:left}
+  #homeCards{display:flex;flex-direction:column;align-items:stretch;gap:18px}
+  /* A real grid, not wrapped flex: every row shares the same columns, and a
+     short last row is ragged on the RIGHT where it belongs. */
+  .cards{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+    gap:14px;align-items:start;justify-items:stretch;
+  }
   /* Headings sat on negative margins to claw back the row gap. Given their own
      spacing instead, so the grid has an actual rhythm rather than a fudge. */
-  .section-heading{font-size:12px;font-weight:bold;letter-spacing:1.6px;color:var(--ink-soft);text-transform:uppercase;opacity:.75;margin:10px 0 0}
+  .section-heading{font-size:11px;font-weight:bold;letter-spacing:1.4px;color:var(--ink-soft);text-transform:uppercase;opacity:.7;margin:8px 0 0;text-align:left}
   /* a date groups the cards right under it; pulled closer to its own row than
      the 28px section rhythm, so it visually belongs to that row, not the gap */
-  .date-heading{font-size:12px;font-weight:600;color:var(--ink-soft);opacity:.8;margin:2px 0 -8px}
+  .date-heading{font-size:12px;font-weight:600;color:var(--ink-soft);opacity:.75;margin:0;text-align:left}
   /* One cell per game: his tile, and the parent's level strip under it. */
-  .cardcell{display:flex;flex-direction:column;align-items:center;gap:7px}
+  .cardcell{display:flex;flex-direction:column;align-items:stretch;gap:6px}
   /* The tile is the button. Four across a tablet rather than two, which halves
      the height of the page — nine 230px cards two-up were what made the list
      taller than the screen in the first place. Still an enormous target. */
+  /* Flat tint plus a hairline edge, not a pastel box floating on a big soft
+     shadow: the tints are so pale that without a border they bled into the
+     background, and a drop shadow on top of that just looked muddy. A 1px ink
+     at 8% works over every tint, so there is still one colour per game to
+     maintain rather than two. */
   .card{
-    width:min(27vw,164px);aspect-ratio:1/1;background:var(--tint,var(--card));border-radius:22px;
-    box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:10px;padding:10px;border:0;color:var(--ink);text-align:center;
-    transition:transform .12s ease,box-shadow .12s ease;
+    aspect-ratio:1/.86;background:var(--tint,var(--card));border-radius:16px;
+    border:1px solid rgba(36,48,68,.08);box-shadow:0 1px 2px rgba(36,48,68,.04);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:8px;padding:12px;color:var(--ink);text-align:center;
+    transition:transform .1s ease;
   }
-  .card .ic{font-size:clamp(34px,7vw,50px);line-height:1}
-  .card .nm{font-size:clamp(12px,2.4vw,15px);font-weight:bold;letter-spacing:.8px;line-height:1.2}
-  .card:active{transform:scale(.96)}
+  /* The icon labels the tile; it isn't the tile. At 50px it was a third of the
+     box and the loud multicolour emoji swamped everything else in it. */
+  .card .ic{font-size:clamp(26px,4.6vw,32px);line-height:1}
+  .card .nm{font-size:clamp(11px,2vw,13px);font-weight:bold;letter-spacing:.5px;line-height:1.25}
+  .card:active{transform:scale(.97)}
   .card.off{opacity:.4}
   /* The parent's row, deliberately quiet and outside the tile: small, grey, no
      card of its own, so it reads as a note under his tile rather than as part
      of the thing he is choosing. */
-  .lvrow{display:flex;align-items:center;gap:5px;opacity:.75}
-  /* A fixed two-line box, not "as tall as this blurb happens to wrap to".
-     Left to itself, "AB · Colour" took one line and "What goes together · 2
-     choices" took three, so every strip was a different height and the rows of
-     tiles sat at ragged heights with the +/- buttons all at different levels.
-     The full wording lives in Settings; this is the glance version. */
-  .lv{
-    font-size:10px;color:var(--ink-soft);width:88px;flex:0 0 88px;text-align:center;
-    line-height:1.3;height:40px;overflow:hidden;
-  }
-  .lv .lv-n{font-weight:bold;display:block}
-  .lv .lv-what{
-    opacity:.85;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
-    overflow:hidden;
-  }
+  /* The parent's row: one line, one height, every card the same. */
+  .lvrow{display:flex;align-items:center;justify-content:space-between;gap:4px;opacity:.7}
+  .lv{font-size:10px;font-weight:bold;color:var(--ink-soft);flex:1 1 auto;text-align:center;line-height:1}
+  /* Small on purpose — it's the parent's control and it shouldn't compete with
+     his tile — but 26px is below any sane tap target, so the hit area is grown
+     past the visible button rather than the button being made bigger. */
   .lvbtn{
-    width:32px;height:32px;border-radius:10px;background:#eef2f8;color:var(--ink-soft);
-    font-size:16px;font-weight:bold;flex:0 0 32px;
+    width:26px;height:26px;border-radius:8px;background:#eceff5;color:var(--ink-soft);
+    font-size:14px;font-weight:bold;flex:0 0 26px;line-height:1;position:relative;
   }
+  .lvbtn::after{content:"";position:absolute;inset:-7px}
   .lvbtn:active{transform:scale(.9)}
   .playbtn[disabled]{opacity:.4;pointer-events:none}
   .homerow{display:flex;align-items:center;gap:10px}

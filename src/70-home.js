@@ -145,12 +145,11 @@ function updateHomeLabels(){
   ACTIVITIES.forEach(act=>{
     const lv = levelOf(act.id);
     const label = $("#lv-" + act.id);
-    if(label){
-      label.innerHTML = "";
-      label.appendChild(el("span","lv-n", "Level " + lv + "/" + act.maxLevel()));
-      const what = act.levelLabel(lv);
-      if(what) label.appendChild(el("span","lv-what", what));
-    }
+    // Just the number. The "AB · Colour" blurb used to sit here too, in two
+    // lines of 10px grey under every tile — seven of those is a lot of noise
+    // for something a parent reads once, and it made every strip a different
+    // height. Settings carries it in full, and in the session history.
+    if(label) label.textContent = "Level " + lv + "/" + act.maxLevel();
     const card = $("#card-" + act.id);
     if(card) card.classList.toggle("off", !isEnabled(act.id));
     const play = document.querySelector('.playbtn[data-kind="'+act.id+'"]');
