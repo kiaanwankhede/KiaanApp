@@ -225,16 +225,19 @@ shows him what it says. The word still gets attached to the thing in the world
 it names — the whole point of the photo pack — just in the other order. Don't
 put the picture back above the grid.
 
-**So the first four levels teach the game instead.** With no picture up there,
-a row of letters over a board of letters doesn't say what to do with either, and
-the honest cost of holding the photo back is that during play this really is
-closer to shape matching. The fix is the same fading support the rest of the app
-uses: levels 1–2 quietly mark the word's own cells (this is your word, here),
-levels 3–4 mark only its first cell (it starts here, read on), and from level 5
-there is nothing. It fades by absolute level rather than per stage, because once
-he knows what the game is he knows it — a longer word is not a new game. The cue
-does neuter the first stage's decoy-start guard while it is up; levels 1–4 are
-teaching levels and the guards start mattering at level 5.
+**So the first four levels lightly highlight the word where it sits.** With no
+picture up there, a row of letters over a board of letters doesn't say what to
+do with either, and the honest cost of holding the photo back is that during
+play this really is closer to shape matching. So while he is learning, the
+word's own cells carry a pale wash and he picks up the sweep by making it; from
+level 5 there is nothing. *Lightly* is the point — plainly not the solid fill
+his own sweep makes, so it reads as "look here" rather than as something already
+answered. And it is the whole word, never just its first letter: the thing being
+taught is that these letters, in a line, are the ones above. On or off by
+absolute level rather than per stage, because once he knows what the game is he
+knows it — a longer word is not a new game. The cue does neuter the first
+stage's decoy-start guard while it is up; levels 1–4 are teaching levels and
+every guard starts mattering at level 5.
 
 **Word find works through the saved vocabulary, not a word list of its own.**
 The pool is EMOJI_PACK — the same words the reward screen teaches, built from

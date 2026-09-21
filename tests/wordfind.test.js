@@ -31,7 +31,7 @@ const PHOTO_PRELUDE = "const PHOTO_PACK = " +
 
 const T = pureContext(["30-rewards.js", "activities/wordfind.js"],
   ["WF_STAGES", "WF_LEVELS", "wfPlan", "wfWords", "wfBuild", "wfCount", "wfRuns", "wfAt", "EMOJI_PACK", "WORDFIND",
-   "WF_CUE_SHAPE", "WF_CUE_START"],
+   "WF_CUE_LEVELS"],
   PHOTO_PRELUDE);
 
 const R = new Runner("wordfind");
@@ -51,12 +51,10 @@ T.WF_STAGES.forEach((s) => {
   if (s.len <= 4) check(s.steps.indexOf("near") < 0, `${s.len}-letter stage: no near-miss runs this early`);
 });
 
-/* The teaching cue is meant to be the first few levels, not a permanent crutch:
-   it fades by absolute level, so a longer word never re-teaches the game. */
-check(T.WF_CUE_SHAPE >= 1 && T.WF_CUE_START > T.WF_CUE_SHAPE,
-  "the cue fades in order — the whole word marked, then only its first letter");
-check(T.WF_CUE_START <= 6,
-  `and it is gone within the first few levels rather than propping him up all the way (last cued level ${T.WF_CUE_START})`);
+/* The teaching cue is the first few levels, not a permanent crutch, and it is
+   on or off by absolute level so a longer word never re-teaches the game. */
+check(T.WF_CUE_LEVELS >= 1 && T.WF_CUE_LEVELS <= 6,
+  `the cue is gone within the first few levels rather than propping him up all the way (last cued level ${T.WF_CUE_LEVELS})`);
 
 /* ---- coverage: the whole saved vocabulary is in play ---- */
 const eligible = T.EMOJI_PACK.map((p) => p[0]).filter((w) => !/[^A-Z]/.test(w) && w.length >= 3);
@@ -149,7 +147,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   let word = spell.map((s) => s.textContent).join("");
   check(spell.length >= 3 && /^[A-Z]+$/.test(word), `the letters to match are on screen (${word})`);
   check(doc.querySelectorAll("#stage .wfcell.tip").length === word.length,
-    "level 1 marks the word's own cells — with no picture to go on, the first levels have to teach what the game is");
+    "level 1 lightly highlights the whole word where it sits — with no picture to go on, the first levels have to teach what the game is");
 
   /* …and it really does fade. Back home, step the level, play again. */
   const home = () => {
@@ -165,10 +163,12 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     for (; onLevel < want; onLevel++) click(plus);
     click(doc.querySelector('.playbtn[data-kind="wordfind"]'));
   };
-  playLevel(T.WF_CUE_SHAPE + 1);
-  check(tips() === 1, `level ${T.WF_CUE_SHAPE + 1}: only the first letter is marked now — it starts here, read on`);
-  playLevel(T.WF_CUE_START + 1);
-  check(tips() === 0, `level ${T.WF_CUE_START + 1}: no cue at all — by now he knows what the game is`);
+  playLevel(T.WF_CUE_LEVELS);
+  const lastCued = Array.from(doc.querySelectorAll("#stage .wfspell span")).length;
+  check(tips() === lastCued,
+    `level ${T.WF_CUE_LEVELS}: still the whole word, not just its first letter — the last of the teaching levels`);
+  playLevel(T.WF_CUE_LEVELS + 1);
+  check(tips() === 0, `level ${T.WF_CUE_LEVELS + 1}: no highlight at all — by now he knows what the game is`);
 
   // and play out this uncued level for real
   const grid2 = $("#stage .wfgrid");

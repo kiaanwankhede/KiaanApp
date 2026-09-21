@@ -22,8 +22,9 @@
    the other order.
 
    The cost of that is real and accepted: during play this IS closer to shape
-   matching, because a four-year-old reads nothing in D-O-G. The early-level
-   cue below is what makes that survivable — see wfRender().
+   matching, because a four-year-old reads nothing in D-O-G. What makes that
+   survivable is the first four levels lightly highlighting the word where it
+   sits, so he learns what the game is by doing it — see wfRender().
 
    WHY THE WHOLE VOCABULARY
    ------------------------
@@ -106,8 +107,7 @@ function wfPlan(level){
 }
 
 /* How long the game teaches itself — see the cue in wfRender(). */
-const WF_CUE_SHAPE = 2;        // up to here: the whole word is marked
-const WF_CUE_START = 4;        // up to here: only its first letter is
+const WF_CUE_LEVELS = 4;       // up to here the word is lightly highlighted; then nothing
 
 const WF_ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -285,28 +285,26 @@ function wfRender(api, level){
   const answerNodes = built.answer.map(nodeAt);
   let done = false, anchor = null, run = [];
 
-  /* Teaching the game, on the first few levels only. With no picture above the
-     grid, a row of letters and a board of letters doesn't say what to DO with
-     either — so the earliest levels quietly mark where the word is and he
-     learns the sweep by making it. Then the support fades, the same way Order
-     takes pieces out of its staircase and Trace narrows its path:
+  /* Teaching the game, on the first four levels only. With no picture above the
+     grid, a row of letters over a board of letters doesn't say what to DO with
+     either — so while he is learning, the word itself is lightly highlighted
+     where it sits and he picks up the sweep by making it. From level 5 there is
+     nothing.
 
-       levels 1-2   the word's cells are marked      — this is your word, here
-       levels 3-4   only its first cell is marked    — it starts here, read on
-       level 5 on   nothing
+     Lightly is the whole point: a pale wash, plainly not the solid fill his own
+     sweep makes, so it reads as "look here" and not as something already
+     answered. And it's the whole word, not just its first letter — the thing
+     being taught is that these letters, in a line, are the ones above.
 
-     It fades by absolute level, not per stage: once he knows what the game is
-     he knows it, and a longer word is not a new game needing to be taught
-     again.
+     On or off by absolute level, not per stage: once he knows what the game is
+     he knows it, and a longer word is not a new game needing teaching again.
 
-     Note this overlaps the first stage's own steps, so the decoy-start guard
-     on level 3 doesn't really bite — the cue points straight at which of the
+     Note this overlaps the first stage's own steps, so the decoy-start guard on
+     level 3 doesn't really bite — the cue points straight at which of the
      several D's is the right one. That is on purpose rather than a hole in the
-     guard: levels 1-4 are teaching levels, and the guards start mattering at
+     guard: levels 1-4 are teaching levels, and every guard starts mattering at
      level 5 when the cue is gone. */
-  const cue = level <= WF_CUE_SHAPE ? "shape" : level <= WF_CUE_START ? "start" : "none";
-  if(cue === "shape") built.answer.forEach(p => nodeAt(p).classList.add("tip"));
-  else if(cue === "start") nodeAt(built.answer[0]).classList.add("tip");
+  if(level <= WF_CUE_LEVELS) built.answer.forEach(p => nodeAt(p).classList.add("tip"));
 
   const paint = (list, cls)=> list.forEach(p => nodeAt(p).classList.add(cls));
   const clearRun = ()=>{
@@ -439,11 +437,9 @@ const WORDFIND = {
       filler:  " The spare cells are filled from the word's own letters, so its letters no longer stand out.",
       near:    " One run starts like the word and then changes, so the end has to be checked too."
     }[p.step];
-    const cue = level <= WF_CUE_SHAPE
-      ? " While he is learning the game the word's own cells are marked for him."
-      : level <= WF_CUE_START
-        ? " Only the word's first letter is marked now — he reads on from there."
-        : "";
+    const cue = level <= WF_CUE_LEVELS
+      ? " While he is learning the game the word is lightly highlighted where it sits."
+      : "";
     return "He sees a word's letters, then finds the same letters " + dirs +
            " (" + p.stage.cols + " by " + p.stage.rows + ", " + words + " words this length)." +
            " The photograph of what the word says is the reward for finding it, not a clue" +
