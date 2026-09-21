@@ -143,9 +143,11 @@ function scoreCorrect(){
   if(t){ t.classList.add("full","pop"); setTimeout(()=>t.classList.remove("pop"),260); }
 }
 function afterCorrect(){
-  // Play never auto-stops — he keeps going until a parent taps back.
-  if(sess.sinceReward >= sess.target){ setTimeout(showReward, 500); return; }
-  setTimeout(nextRound, 550);
+  // Play never auto-stops — he keeps going until a parent taps back. Both of
+  // these are the session's own, so a tap back in the gap stops them rather
+  // than having them land on a screen he has already left.
+  if(sess.sinceReward >= sess.target){ laterInSession(showReward, 500); return; }
+  laterInSession(nextRound, 550);
 }
 function nextRound(){
   sess.roundDone = false; sess.roundMisses = 0;
@@ -177,17 +179,17 @@ function nextRound(){
    means the whole game wasn't independent. */
 const SCENE_GAP_MS = 900;
 function playScenes(api, scenes, tag){
-  const mine = sess;                    // tapping back mid-beat must not draw the next scene
+  const live = sessionGuard();          // tapping back mid-beat must not draw the next scene
   let idx = 0;
   const draw = ()=>{
-    if(sess !== mine) return;
+    if(!live()) return;
     api.stage.innerHTML = "";
     noteScene(idx + 1, scenes.length);
     scenes[idx](Object.assign({}, api, {
       solved(){
         idx++;
         if(idx >= scenes.length){ api.solved(tag); return; }
-        setTimeout(draw, SCENE_GAP_MS);
+        laterInSession(draw, SCENE_GAP_MS);
       }
     }));
   };
@@ -202,20 +204,49 @@ function noteScene(n, total){
   for(let i=0;i<total;i++) dots.appendChild(el("span", i < n - 1 ? "on" : "", "●"));
   wm.appendChild(dots);
 }
+/* ---- nothing deferred outlives the session it belonged to ----
+   A parent can tap back at any moment, including the half second between a
+   right answer and whatever comes next, and a finger can still be holding a
+   tile when they do. Everything that runs later — a drop that lands after
+   the fact, the timer carrying play into the next round, the next scene of a
+   one-shot game — asks this first.
+
+   Both halves came from real failures, found by driving the page:
+     - letting go of a dragged tile after tapping back threw outright
+       ("Cannot set properties of null"), because the drop still called
+       api.miss() and the session was gone;
+     - tapping back the instant a Word find round solved put the reward
+       screen up OVER the "N right today" screen half a second later, so the
+       parent's own tap was overridden. Word find rewards every round, so
+       that window was open on every single round of it.
+
+   `sess` going null covers going home; `over` covers ending a session, which
+   deliberately keeps sess alive to write its record. */
+function sessionGuard(){
+  const mine = sess;
+  return ()=> !!mine && sess === mine && !mine.over;
+}
+function laterInSession(fn, ms){
+  const live = sessionGuard();
+  return setTimeout(()=>{ if(live()) fn(); }, ms);
+}
+
 function roundApi(act, stage){
+  const live = sessionGuard();
   return {
     stage,
     level: levelOf(act.id),
-    attempts(){ return sess.attempts; },
-    refocus(){ sess.attempts = 0; },
-    hint(target){ showHint(target); },
+    attempts(){ return live() ? sess.attempts : 0; },
+    refocus(){ if(live()) sess.attempts = 0; },
+    hint(target){ if(live()) showHint(target); },
     miss(){
+      if(!live()) return 0;
       sess.misses++; sess.attempts++; sess.roundMisses++;
       if(sess.attempts >= S.dimAfter) sess.prompts++;
       return sess.attempts;
     },
     solved(tag){
-      if(sess.roundDone) return;
+      if(!live() || sess.roundDone) return;
       const independent = (sess.roundMisses === 0 && !sess.hintShownThisRound);
       const prompted    = (sess.roundMisses === 0 &&  sess.hintShownThisRound);
       if(independent) sess.clean++;

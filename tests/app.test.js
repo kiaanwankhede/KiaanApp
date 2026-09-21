@@ -26,6 +26,26 @@ setTimeout(() => {
   check(doc.querySelectorAll(".card").length === registeredActivities().length,
     "every registered activity has a home card");
 
+  /* ...and every one of them can actually be reached. Nine cards plus the
+     section and date headings are taller than a tablet, and the home screen is
+     absolutely positioned inside body{overflow:hidden}: before it was made a
+     scroller the overflow was clipped away, and four of the nine games could
+     not be started at all on a 768x1024 screen. jsdom does no layout, so what
+     is checked here is the structure that makes scrolling possible — the real
+     measurement was done in a browser. */
+  const scroller = $("#homeScroll");
+  check(!!scroller, "the home screen has an inner scrolling wrapper");
+  check(!!scroller && scroller.contains($("#homeCards")),
+    "the cards live inside it, so a list too tall for the screen can be scrolled to");
+  check(!!$("#gear") && !scroller.contains($("#gear")),
+    "the settings gear stays outside it, so it keeps its corner instead of scrolling away");
+  const css = doc.querySelector("style") ? doc.querySelector("style").textContent : "";
+  const homeRule = (css.match(/#home\{([^}]*)\}/) || [])[1] || "";
+  check(/overflow-y:\s*auto/.test(homeRule),
+    "and #home is a scroll container rather than clipping what doesn't fit (got \"" + homeRule + "\")");
+  check(!/justify-content:\s*center/.test(homeRule),
+    "not centred while overflowing either — centring an overflowing column puts its top out of reach too");
+
   // ---- a launch picks up two below his best, not where he left off ----
   check($("#lv-pattern").textContent.includes("Level 10/"),
     "Patterns starts two below its best of 12, not at the 12 he was mid-climb on");
