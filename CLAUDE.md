@@ -503,6 +503,34 @@ condition and has to travel with the pictures.
 
 ---
 
+**The tile IS the button, and each game has its own soft colour.** The first
+home screen put five things in every card — icon, name, a level blurb, "Level
+1/40", two stepper buttons and a bright PLAY pill — so his one decision
+competed with the parent's settings in the same box, and the actual target was
+the smallest thing in it. Now the whole tile is what he taps, and **nothing
+else tappable goes inside it**: a stepper in there means a tap near "+" does
+nothing when he meant to start the game. The parent's level strip sits *under*
+the tile instead — two audiences, two places.
+
+Colour does the identifying. Nine white boxes differing only by emoji is the
+weakest identifier there is for someone who cannot read the names, and "the
+green one" is how he will actually find Sorting. `CARD_TINTS` in src/70-home.js
+keys them by id, not by position, so adding an activity never shuffles the
+colours he has already learned; an id with no entry falls back to a plain tile
+and works, which keeps adding one to the three one-line changes promised above.
+All of them are pale on purpose — the screen used to carry nine saturated blue
+PLAY pills, which were the loudest thing on it, and a wash at this lightness
+gives each tile an identity without raising the contrast of the page at all.
+
+Two details that look cosmetic and aren't. The tiles are four across a tablet
+rather than two, which halves the height of the page — nine 230px cards two-up
+were what made the list taller than the screen in the first place. And the
+level strip is a **fixed two-line box**: left to wrap freely, "AB · Colour"
+took one line and "What goes together · 2 choices" took three, so every strip
+was a different height and the rows of tiles sat ragged with the +/− buttons
+all at different heights. The full wording is in Settings; the strip is the
+glance version.
+
 **The home screen scrolls, and is centred only while it fits.** It didn't need
 to at three activities. At nine — seven in the plain row plus a section
 heading, two date headings and two Toondemy cards — the content is taller than

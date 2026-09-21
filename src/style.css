@@ -45,31 +45,56 @@
     flex:0 0 auto;min-height:100%;display:flex;flex-direction:column;
     align-items:center;justify-content:center;gap:28px;padding:24px;
   }
-  .app-title{font-size:clamp(28px,6vw,44px);font-weight:bold;letter-spacing:.5px;margin:0}
-  .app-sub{color:var(--ink-soft);margin:-16px 0 0;font-size:15px}
-  #homeCards{display:flex;flex-direction:column;align-items:center;gap:28px}
-  .cards{display:flex;gap:22px;flex-wrap:wrap;justify-content:center}
-  .section-heading{font-size:14px;font-weight:bold;letter-spacing:1.5px;color:var(--ink-soft);text-transform:uppercase}
+  /* Lighter than it was: a 44px bold near-black title was the heaviest thing on
+     a screen whose job is to be calm, and it ate the top of a tablet. */
+  .app-title{font-size:clamp(22px,4vw,30px);font-weight:600;letter-spacing:.5px;margin:0;color:var(--ink)}
+  .app-sub{color:var(--ink-soft);margin:-18px 0 0;font-size:14px}
+  #homeCards{display:flex;flex-direction:column;align-items:center;gap:22px}
+  .cards{display:flex;gap:clamp(10px,2vw,18px);flex-wrap:wrap;justify-content:center;align-items:flex-start}
+  /* Headings sat on negative margins to claw back the row gap. Given their own
+     spacing instead, so the grid has an actual rhythm rather than a fudge. */
+  .section-heading{font-size:12px;font-weight:bold;letter-spacing:1.6px;color:var(--ink-soft);text-transform:uppercase;opacity:.75;margin:10px 0 0}
   /* a date groups the cards right under it; pulled closer to its own row than
      the 28px section rhythm, so it visually belongs to that row, not the gap */
-  .date-heading{font-size:13px;font-weight:bold;color:var(--ink-soft);margin:-14px 0 -14px}
+  .date-heading{font-size:12px;font-weight:600;color:var(--ink-soft);opacity:.8;margin:2px 0 -8px}
+  /* One cell per game: his tile, and the parent's level strip under it. */
+  .cardcell{display:flex;flex-direction:column;align-items:center;gap:7px}
+  /* The tile is the button. Four across a tablet rather than two, which halves
+     the height of the page — nine 230px cards two-up were what made the list
+     taller than the screen in the first place. Still an enormous target. */
   .card{
-    width:min(42vw,230px);aspect-ratio:1/1.05;background:var(--card);border-radius:var(--radius);
-    box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
-    border:3px solid transparent;transition:transform .12s ease;
+    width:min(27vw,164px);aspect-ratio:1/1;background:var(--tint,var(--card));border-radius:22px;
+    box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:10px;padding:10px;border:0;color:var(--ink);text-align:center;
+    transition:transform .12s ease,box-shadow .12s ease;
   }
-  .card .ic{font-size:clamp(40px,9vw,64px);line-height:1}
-  .card .nm{font-size:clamp(17px,3.4vw,22px);font-weight:bold;letter-spacing:1px}
-  .card .lv{font-size:11.5px;color:var(--ink-soft);width:110px;flex:0 0 110px;text-align:center;line-height:1.3}
-  .card.off{opacity:.45}
-  .lvrow{display:flex;align-items:center;gap:10px}
-  .lvbtn{width:32px;height:32px;border-radius:10px;background:#f1f5fa;font-size:17px;font-weight:bold}
+  .card .ic{font-size:clamp(34px,7vw,50px);line-height:1}
+  .card .nm{font-size:clamp(12px,2.4vw,15px);font-weight:bold;letter-spacing:.8px;line-height:1.2}
+  .card:active{transform:scale(.96)}
+  .card.off{opacity:.4}
+  /* The parent's row, deliberately quiet and outside the tile: small, grey, no
+     card of its own, so it reads as a note under his tile rather than as part
+     of the thing he is choosing. */
+  .lvrow{display:flex;align-items:center;gap:5px;opacity:.75}
+  /* A fixed two-line box, not "as tall as this blurb happens to wrap to".
+     Left to itself, "AB · Colour" took one line and "What goes together · 2
+     choices" took three, so every strip was a different height and the rows of
+     tiles sat at ragged heights with the +/- buttons all at different levels.
+     The full wording lives in Settings; this is the glance version. */
+  .lv{
+    font-size:10px;color:var(--ink-soft);width:88px;flex:0 0 88px;text-align:center;
+    line-height:1.3;height:40px;overflow:hidden;
+  }
+  .lv .lv-n{font-weight:bold;display:block}
+  .lv .lv-what{
+    opacity:.85;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  .lvbtn{
+    width:32px;height:32px;border-radius:10px;background:#eef2f8;color:var(--ink-soft);
+    font-size:16px;font-weight:bold;flex:0 0 32px;
+  }
   .lvbtn:active{transform:scale(.9)}
-  .playbtn{
-    margin-top:2px;background:var(--accent);color:#fff;font-weight:bold;font-size:14px;
-    letter-spacing:1px;padding:10px 20px;border-radius:999px;box-shadow:var(--shadow);
-  }
-  .playbtn:active{transform:scale(.94)}
   .playbtn[disabled]{opacity:.4;pointer-events:none}
   .homerow{display:flex;align-items:center;gap:10px}
   .homerow label{font-size:14px;color:var(--ink-soft)}
