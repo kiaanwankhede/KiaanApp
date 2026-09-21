@@ -143,6 +143,18 @@ function pictureFor(pair){
   return null;
 }
 
+/* The same lookup by word rather than by pair. Word find needs it to put the
+   right photograph above its grid, and the pinned reward below needs it to
+   show the word he just found — one lookup for both, so the picture over the
+   grid and the picture on the reward screen can never disagree. A word a
+   parent added wins over a bundled one, exactly as it does in the bag. */
+function pictureForWord(word){
+  const mine = CUSTOM.find(c => c.word === word);
+  if(mine) return {type:"img", word:mine.word, url:mine.url};
+  const pair = EMOJI_PACK.find(p => p[0] === word);
+  return pair ? pictureFor(pair) : null;
+}
+
 /* shuffle bag so the same animal doesn't repeat */
 let bag = [];
 function nextAnimal(){
@@ -159,12 +171,24 @@ function nextAnimal(){
   return bag.pop();
 }
 
+/* An activity whose content IS the vocabulary asks for the reward to be a
+   particular word — Word find pins the word he just located, so the photograph
+   he gets is of the thing he found rather than a stranger from the bag. It is
+   cleared on use either way, so a pin left over from a round he backed out of
+   can never leak into somebody else's reward. */
+let pinnedWord = null;
+function pinReward(word){ pinnedWord = word; }
+function takePinnedReward(){
+  const w = pinnedWord; pinnedWord = null;
+  return w ? pictureForWord(w) : null;
+}
+
 let rewardTimer = null;
 function showReward(){
   const act = activityById(sess.kind);
-  const a = nextAnimal();
+  const a = takePinnedReward() || nextAnimal();
   sess.sinceReward = 0;
-  sess.target = act.oneShot ? 1 : rewardTarget();
+  sess.target = rewardTargetFor(act);
   const img = $("#rwImg"); img.innerHTML = "";
   if(a.type === "img"){ const i = el("img"); i.src = a.url; img.appendChild(i); }
   else { img.appendChild(el("div","em", a.em)); }

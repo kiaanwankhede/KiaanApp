@@ -27,9 +27,9 @@ function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=rnd(i+1)
  * than on the context object, so the names to lift out are listed explicitly
  * and returned as the value of the script's last expression.
  */
-function pureContext(files, exportNames) {
+function pureContext(files, exportNames, prelude) {
   const code =
-    [RANDOM_PRELUDE]
+    [RANDOM_PRELUDE, prelude || ""]
       .concat(files.map((f) => fs.readFileSync(path.join(SRC, f), "utf8")))
       .join("\n") +
     "\n;({ " + exportNames.join(", ") + " });";

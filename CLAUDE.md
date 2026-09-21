@@ -1,8 +1,8 @@
 # Think & Sort
 
-A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Eight
-activities so far — Patterns, Sorting, Order, How many, Trace, Match, Sky and
-Nine — built as
+A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Nine
+activities so far — Patterns, Sorting, Order, How many, Trace, Match, Word
+find, Sky and Nine — built as
 **one offline HTML file** that runs from a tablet with no network, no install
 and no dependencies.
 
@@ -37,7 +37,9 @@ src/
   10-helpers.js    $ / el / rnd / pick / shuffle, screen switching, hand hint
   00-state.js      settings + progress in localStorage; per-activity accessors
   20-stimuli.js    shared visual vocabulary: colours, shapes, themes, renderers
-  30-rewards.js    reward picture + spelling, shuffle bag, IndexedDB photo store
+  30-rewards.js    reward picture + spelling, shuffle bag, IndexedDB photo store;
+                   pictureForWord() and pinReward(), for an activity that needs a
+                   particular word's picture rather than the next one in the bag
   photos/          153 reward photographs (.webp) + credits.json; inlined at build
   35-drag.js       pointer-events drag and drop
   36-trace-engine.js  shared "follow the line" engine: traceTracker (the judge, DOM-free
@@ -53,6 +55,8 @@ src/
     count.js       "how many?" — match amounts, 21 levels in 6 stages, up to 10
     trace.js       "follow the line" — strokes, then numbers 0–9, then smaller, 30 levels
     match.js       "what goes with it?" — association pairs, 22 levels
+    wordfind.js    "find the word" — a photo and its spelling, the same letters hidden in
+                   a grid; works through the whole saved vocabulary, 38 levels in 9 stages
     sky.js         "follow the line" again, dressed as reaching a real thing — three rays,
                    three raindrops, three kite strings, three flight paths, one fixed game
     nine.js        "fill all nine" — bees into hives, ladybirds onto leaves, Sorting's
@@ -201,6 +205,71 @@ game silently dead. The judging lives in `traceTracker()`, free of the DOM, and
 `tests/trace.test.js` runs it on every shape at every tolerance — including
 that jumping ahead, cutting across a circle or going round the wrong way never
 finishes a shape.
+
+**Word find is letter matching, not reading.** He cannot read, so nothing in
+it asks him to. The photograph and the word's letters both stay on screen the
+whole round — the photograph so he knows which word he is after, the letters so
+he has the shapes to match against the grid. That makes it visual
+discrimination of letter forms and left-to-right scanning, which is what comes
+before reading; the photograph is what stops it being an abstract
+shape-matching drill and keeps it about the word. Never take the target off
+screen to "make him remember it" — that turns a pre-reading task into a memory
+test and he will simply stop being able to do it.
+
+**Word find works through the saved vocabulary, not a word list of its own.**
+The pool is EMOJI_PACK — the same words the reward screen teaches, built from
+what `pictureForWord()` can actually show, so a word that loses its picture
+drops out on its own instead of appearing with a blank above it. Every
+single-word entry of three letters or more is reachable as a target somewhere
+on the ladder, and `tests/wordfind.test.js` fails if one stops being. Three are
+deliberately out: TV, because a two-cell run in a letter grid is not a find and
+it is an abbreviation rather than a spelling; ICE CREAM and FIRE ENGINE,
+because a space cannot be a cell he drags through, and hiding ICECREAM under a
+target that reads ICE CREAM would teach the wrong spelling of the one word it
+was there to teach.
+
+**The word is only ever hidden the way reading goes — and a backwards sweep
+still counts.** Left-to-right or top-to-bottom, never backwards, never
+diagonally. Reversals are the mistake emergent writers already make on their
+own, and a puzzle that hides DOG as GOD to make itself harder spends its
+difficulty budget teaching the error — the same reason Trace enforces stroke
+direction. But sweeping the right cells right-to-left *is* accepted: he found
+the word, and refusing a correct find is a failure state. The direction is
+taught by never showing him a mirrored word, not by rejecting him; either way
+the word lights up in reading order.
+
+**The word is in the grid exactly once.** The filler can always happen to spell
+it a second time, and a stray copy is just as findable as the planted one — so
+he would sweep a run that genuinely reads DOG and be told nothing happened.
+`wfBuild()` regenerates until `wfCount()` says one, and it counts across AND
+down whatever direction the level places along, because he can drag either way.
+The same `wfRuns()` both places the word and counts it, so a word can never sit
+somewhere the checker doesn't look.
+
+**Word find is staged by word length — the third ladder that is, and for the
+same reason.** Length has to grow monotonically to get through the vocabulary,
+and it dominates everything else: a three-letter word in a 4x4 grid and a
+ten-letter word in an 11x5 one are not the same task. So each stage is one word
+length, and inside a stage exactly one thing gets harder at a time, in this
+order: direction (across only, then across or down), then the word's first
+letter planted elsewhere too so "find the only D" stops working, then the spare
+cells drawn from the word's OWN letters so its letters no longer stand out from
+the background, then a run that starts like the word and diverges (TIG·B where
+he wants TIGER) so the end has to be read and not assumed. The last two only
+appear from the five-letter stage on — on a short word in a small grid there is
+no room for them to be anything but cruel. Grids stay wide rather than square
+once words get long, which also makes the longest words across-only for free:
+down is offered only where the word actually fits down the grid.
+
+**Word find's reward is the word he just found, every round.** Every other
+graded activity rewards after a block (`S.rewardEvery`); this one sets
+`rewardEveryRound` in the contract and gets a target of exactly 1, because here
+the reward screen IS the content — the photograph and spelling it shows are the
+thing being taught, so waiting five rounds would put the picture up long after
+he had forgotten which word earned it. The activity calls `pinReward(word)`
+before it solves, so the picture is of what he found rather than a stranger
+from the shuffle bag. It is still an ordinary ladder otherwise: stepper,
+mastery and Settings all behave exactly as everywhere else.
 
 **Sky is Trace's engine wearing different art, on purpose, and it stops there.**
 A commercial tracing app teaching this identical skill — a line from one thing

@@ -20,11 +20,19 @@
                                             // the home screen instead of the plain row
        date:      "2025-01-02",            // optional — "YYYY-MM-DD"; within a section,
                                             // cards always sort oldest first (src/70-home.js)
-       oneShot:   true                     // optional — a single fixed game, no level ladder:
+       oneShot:   true,                    // optional — a single fixed game, no level ladder:
                                             // no stepper on its card, the reward shows the
                                             // moment its one round solves (not after a block),
                                             // and the reward screen offers Repeat / Next
                                             // instead of counting straight into another round
+       rewardEveryRound: true               // optional — the reward is due after every round
+                                            // rather than after a block of them. For an
+                                            // activity where the reward IS the content (Word
+                                            // find teaches the very words the reward screen
+                                            // shows), waiting five rounds would put the
+                                            // picture on screen long after he'd forgotten
+                                            // which word earned it. Still a normal ladder:
+                                            // stepper, mastery and Settings all unchanged.
      }
 
    startRound gets an `api` and is responsible for nothing but this round:
@@ -51,9 +59,7 @@ let sess = null;
 function activityById(id){ return ACTIVITIES.find(a => a.id === id) || ACTIVITIES[0]; }
 
 function startSession(id){
-  // a one-shot game's single round IS the whole game — the reward is due the
-  // moment it solves, not after a whole block of them like every other activity
-  const target = activityById(id).oneShot ? 1 : rewardTarget();
+  const target = rewardTargetFor(activityById(id));
   sess = {
     kind: id, correct:0, misses:0, prompts:0, started:Date.now(),
     sinceReward:0, target, attempts:0, clean:0, asked:0
@@ -108,6 +114,14 @@ function updateLevelWatermark(){
     wm.appendChild(blocks);
   }
 
+}
+/* How many correct rounds this activity owes before its reward. Two activities
+   ask for one: a one-shot game, whose single round IS the whole game, and one
+   that rewards every round because the reward is its content. Everything else
+   gets the parent's block setting. */
+function rewardTargetFor(act){
+  if(act.oneShot || act.rewardEveryRound) return 1;
+  return rewardTarget();
 }
 function rewardTarget(){
   const n = S.rewardEvery;
