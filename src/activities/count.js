@@ -60,6 +60,14 @@ const COUNT_OPTIONS = 3;
 const COUNT_PICTURES = [].concat(THEMES.fruits, THEMES.animals, THEMES.vehicles);
 const COUNT_PIC_R = 10.5;            // picture half-size, in the card's 100-unit box
 
+/* What each kind of question actually asks, in words a parent reads in the
+   Progress panel rather than the field name. */
+const COUNT_ASK_NAME = {
+  dots:      "counting things",
+  numToDots: "number, then count",
+  dotsToNum: "count, then number",
+  numBoth:   "numbers only"
+};
 const COUNT_LEVELS = [
   // 1 — same pattern: laid out alike, the on-ramp
   { stage:1, load:0.0, name:"Dots · 1 to 3 · same pattern", range:[1,3], ask:"dots", layout:"same" },
@@ -327,7 +335,13 @@ const COUNTING = {
           slot.innerHTML = "";
           slot.appendChild(itemNode(it, px));       // the two amounts end up side by side
           opts.querySelectorAll(".opt").forEach(o=>o.classList.add("gone"));
-          api.solved(null);
+          /* Tag by what KIND of question it was, not which level. This is the
+             game with the most stages and it used to tag nothing, so the
+             Progress panel could say he was at 40% here without saying whether
+             it was the dots, the numerals or reading one against the other —
+             which is the difference between "step him down" and "he just needs
+             the numerals". */
+          api.solved(COUNT_ASK_NAME[r.entry.ask] || r.entry.ask);
         } else {
           const attempts = api.miss();
           if(attempts >= S.dimAfter) opts.querySelectorAll(".opt").forEach(o=>{ if(!isAnswer(o)) o.classList.add("dim"); });

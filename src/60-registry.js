@@ -4,4 +4,4 @@
    mastery tracking, its share of the reward schedule, its Settings row —
    follows from this list without any further wiring.
    ================================================================== */
-const ACTIVITIES = [ PATTERNS, SORTING, SERIATION, COUNTING, TRACING, MATCHING, ODD, WORDFIND, WORDFILL, SKY, NINE ];
+const ACTIVITIES = [ PATTERNS, SORTING, SERIATION, COUNTING, TRACING, MATCHING, ODD, WHERE, WORDFIND, WORDFILL, SKY, NINE ];

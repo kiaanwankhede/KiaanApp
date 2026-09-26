@@ -123,13 +123,26 @@ async function openSettings(){
      behind where he plays is a game whose mornings are being wasted. */
   const summary = activityStats();
   if(summary.length){
-    g5.appendChild(el("div","hint","Where he is · best he has held · rounds · answered alone"));
+    g5.appendChild(el("div","hint",
+      "Where he is · how long he has been there · best he has held · answered alone"));
     summary.forEach(a=>{
       const r = el("div","stat");
       r.appendChild(el("span", null, a.name + (a.oneShot ? "" : "  L" + a.level + "/" + a.max)));
       const alone = a.rounds ? Math.round((a.clean / a.rounds) * 100) + "%" : "—";
+      /* The number that changes what you'd do about it: answers given at the
+         level he is on right now. A big one beside a low percentage is a level
+         to step him down from; a big one beside a high percentage means the
+         climb is stalling for some other reason. */
+      const here = a.oneShot ? "" : a.atLevel + " here · ";
       r.appendChild(el("span", null,
-        (a.oneShot ? "" : "best " + a.best + " · ") + a.rounds + " rounds · " + alone));
+        here + (a.oneShot ? "" : "best " + a.best + " · ") + a.rounds + " rounds · " + alone));
+      if(!a.oneShot && a.atLevel >= S.itemsPerSession * 4 && a.rounds &&
+         (a.clean / a.rounds) < 0.6){
+        const w = el("div","hint", "↑ stuck on level " + a.level + " — worth stepping down");
+        w.style.marginTop = "-6px";
+        g5.appendChild(r); g5.appendChild(w);
+        return;
+      }
       g5.appendChild(r);
     });
   }

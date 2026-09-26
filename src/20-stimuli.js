@@ -120,6 +120,9 @@ function itemNode(it, px){
     if(typeof it.scale === "number") d.style.fontSize = "calc(var(--t,78px) * " + (0.8*it.scale).toFixed(3) + ")";
   }
   else if(it.k==="text"){ d.textContent = it.text; d.style.color = it.color; }
+  // a drawing an activity composed itself — the drag engine rebuilds a dragged
+  // tile from _item, so anything draggable has to be renderable from it alone
+  else if(it.k==="svg") d.innerHTML = it.svg;
   else if(it.k==="bar") d.innerHTML = barSVG(it.color, it.scale);
   else if(it.k==="set") d.innerHTML = setSVG(it);
   else d.innerHTML = shapeSVG(it.shape, it.color, sizeScaleOf(it.size));

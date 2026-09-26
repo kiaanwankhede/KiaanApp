@@ -203,5 +203,17 @@ setTimeout(() => {
   check(slot.classList.contains("done") && !!slot.querySelector(".tile"), "the right card lands beside the top one");
   check(doc.querySelectorAll("#tokens .tok.full").length === 1, "and earns a token");
 
+  /* ...and the round says what KIND of question it was. This is the game with
+     the most stages and it used to tag nothing, so the Progress panel could
+     report 40% here without saying whether it was the dots, the numerals or
+     reading one against the other — the difference between "step him down" and
+     "he just needs the numerals". */
+  const saved = JSON.parse(window.localStorage.getItem("lr_state_v1") || "{}");
+  const tags = ((saved.progress || {}).tagStats || {}).count || {};
+  const names = Object.keys(tags);
+  check(names.length === 1, `the round was tagged with what it asked (got ${names.join(", ") || "nothing"})`);
+  check(names[0] && names[0] !== "null" && /[a-z]/.test(names[0]),
+    `and the tag is words a parent reads, not a field name ("${names[0]}")`);
+
   R.finish(errors);
 }, 150);

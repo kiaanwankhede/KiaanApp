@@ -44,6 +44,7 @@ const CARD_TINTS = {
   trace:    "#f1edfb",     // lavender
   match:    "#fdeef1",     // rose
   odd:      "#e8ecf3",     // slate
+  where:    "#f3eee6",     // stone
   mix:      "#ffffff",     // no colour of its own — it isn't a game, see .card.mix
   wordfind: "#e7f3f6",     // teal
   wordfill: "#eceafa",     // periwinkle
