@@ -130,6 +130,7 @@ const SOLVE = {
   count(win) { return SOLVE.pattern(win); },     // same shape: one slot, cards to pick from
   match(win) { return SOLVE.pattern(win); },     // same shape: one slot, cards to pick from
   wordfill(win) { return SOLVE.pattern(win); }, // same shape again: one gap, letters to pick from
+  odd(win) { return SOLVE.pattern(win); },      // and again: one space, things to pick from
   nine(win) {
     const d = win.document;
     const opts = Array.from(d.querySelectorAll("#stage .tray .opt .tile"));
@@ -264,7 +265,7 @@ const ONE_SHOT = new Set(["sky", "nine"]);
 
 (async () => {
   const allKinds = registeredActivities().map((c) =>
-    ({ PATTERNS: "pattern", SORTING: "sort", SERIATION: "seriate", COUNTING: "count", TRACING: "trace", MATCHING: "match", WORDFIND: "wordfind", WORDFILL: "wordfill", SKY: "sky", NINE: "nine" }[c]));
+    ({ PATTERNS: "pattern", SORTING: "sort", SERIATION: "seriate", COUNTING: "count", TRACING: "trace", MATCHING: "match", ODD: "odd", WORDFIND: "wordfind", WORDFILL: "wordfill", SKY: "sky", NINE: "nine" }[c]));
   check(allKinds.every(Boolean), "every registered activity has a solver here");
   const kinds = allKinds.filter((k) => !ONE_SHOT.has(k));
   const allErrors = [];

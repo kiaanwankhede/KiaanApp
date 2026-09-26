@@ -43,6 +43,7 @@ const CARD_TINTS = {
   count:    "#fdf8e3",     // butter
   trace:    "#f1edfb",     // lavender
   match:    "#fdeef1",     // rose
+  odd:      "#e8ecf3",     // slate
   wordfind: "#e7f3f6",     // teal
   wordfill: "#eceafa",     // periwinkle
   sky:      "#fdf4e4",     // sand

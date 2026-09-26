@@ -1,8 +1,8 @@
 # Think & Sort
 
-A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Ten
-activities so far — Patterns, Sorting, Order, How many, Trace, Match, Word
-find, Finish the word, Sky and Nine — built as
+A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Eleven
+activities so far — Patterns, Sorting, Order, How many, Trace, Match, Odd one
+out, Word find, Finish the word, Sky and Nine — built as
 **one offline HTML file** that runs from a tablet with no network, no install
 and no dependencies.
 
@@ -56,6 +56,8 @@ src/
     count.js       "how many?" — match amounts, 21 levels in 6 stages, up to 10
     trace.js       "follow the line" — strokes, then numbers 0–9, then smaller, 30 levels
     match.js       "what goes with it?" — association pairs, 22 levels
+    odd.js         "which one is different?" — three share something, one doesn't, and
+                   nothing says what; 21 levels sorted by load
     wordfind.js    "find the word" — a word's letters, the same letters hidden in a grid,
                    the photo of what it says as the reward for finding them; works through
                    the whole saved vocabulary, 38 levels in 9 stages
@@ -112,6 +114,38 @@ rule must be randomised per item, so it can never quietly become what he sorts
 or matches on. Sorting by shape randomises colour; sorting by size randomises
 both colour and shape. This is deliberate and it is tested — don't "simplify"
 it by fixing the irrelevant attribute.
+
+**Odd one out inverts that guard, for exactly the same reason.** It is the one
+game here that hands him no rule at all — Sorting's bins say what they want,
+Patterns shows the start of the sequence, Match asks for a relation he knows;
+this one makes him work out what the others have in common before he can say
+which one hasn't got it. That is induction rather than application, and it is
+why randomising the non-rule attributes would **break** the round instead of
+protecting it: if the rule is shape and colour varies freely, the odd shape may
+also be the only red one, and then there are two defensible odd ones with only
+one accepted — a round he loses for being right.
+
+So the same principle turns around. Anything that isn't the rule is either held
+identical across every item, or varied so that **no value ever appears exactly
+once** — two reds and two blues, never three and one. A value used twice cannot
+single anything out, so only the rule can. That varying is itself the
+difficulty step and it earns its keep: with everything else identical, three
+items are literally the same tile and "find the one that isn't a duplicate"
+answers the round without ever noticing which attribute differs.
+
+The third guard is the one a generator gets wrong quietly: **the odd one must
+not favour a position**, or "it's usually the last" answers the game without
+looking. `tests/odd.test.js` builds thousands of rounds at every level and
+checks all three; neutering the spread makes it fail with the ambiguous boards
+spelled out.
+
+Its ladder is one sorted list scored by load, like Sorting's and Match's — how
+abstract the rule is (colour, shape, size, then what the thing *is*), whether
+the other attributes vary, and how many things there are to scan. Fruit versus
+vegetable is deliberately NOT its hardest category round even though it is the
+obvious near miss: **Categories must be nameable** below rules it out, and a
+round a fair grown-up could argue with is not a hard round, it is a broken one.
+Letter versus number was considered for the top and left out on the same test.
 
 **Ladders are ordered by real difficulty, not by structure.** Both activities
 score every level with an explicit load (how much the structure taxes working
