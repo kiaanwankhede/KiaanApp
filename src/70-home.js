@@ -44,6 +44,7 @@ const CARD_TINTS = {
   trace:    "#f1edfb",     // lavender
   match:    "#fdeef1",     // rose
   odd:      "#e8ecf3",     // slate
+  mix:      "#ffffff",     // no colour of its own — it isn't a game, see .card.mix
   wordfind: "#e7f3f6",     // teal
   wordfill: "#eceafa",     // periwinkle
   sky:      "#fdf4e4",     // sand
@@ -59,18 +60,19 @@ const CARD_TINTS = {
 function buildCard(act){
   const cell = el("div","cardcell");
 
-  const card = el("button","card playbtn"); card.id = "card-" + act.id;
+  const card = el("button","card playbtn" + (act.id === MIX_ID ? " mix" : ""));
+  card.id = "card-" + act.id;
   card.dataset.kind = act.id;
   card.style.setProperty("--tint", CARD_TINTS[act.id] || "var(--card)");
   card.appendChild(el("div","ic", act.icon));
   card.appendChild(el("div","nm", act.name));
   card.addEventListener("click", ()=>{
     goFullscreen(); keepAwake();   // a tap on the tile is a real user gesture, so both are allowed
-    if(isEnabled(act.id)) startSession(act.id);
+    if(act.id === MIX_ID || isEnabled(act.id)) startSession(act.id);
   });
   cell.appendChild(card);
 
-  if(!act.oneShot){
+  if(!act.oneShot && act.maxLevel){
     const row = el("div","lvrow");
     const minus = el("button","lvbtn","−"); minus.dataset.kind = act.id; minus.dataset.dir = "-1";
     const label = el("div","lv"); label.id = "lv-" + act.id;
@@ -113,6 +115,17 @@ function nextInSection(act){
   const idx = flat.findIndex(a => a.id === act.id);
   return idx === -1 ? null : flat[(idx + 1) % flat.length];
 }
+/* Mix is a way to play, not a game, so it is not in the registry — but it
+   still wants a card, and it wants the same card every other one gets. It is
+   added at the END of the plain row on purpose: the grid he already knows is
+   untouched and this is one more thing at the bottom of it, not a new default
+   sitting where Patterns used to be.
+
+   It has no level of its own (each round runs at its own game's level), hence
+   no stepper, and it is left out entirely when there are fewer than two games
+   to mix — a mix of one is just that game with a stranger name on it. */
+const MIX_CARD = { id: MIX_ID, name: "MIX", icon: "🎲" };
+
 function buildHomeCards(){
   const wrap = $("#homeCards");
   wrap.innerHTML = "";
@@ -124,7 +137,7 @@ function buildHomeCards(){
   };
 
   const { plain, sections } = groupHomeSections(ACTIVITIES);
-  cardRow(plain);
+  cardRow(mixPool().length >= 2 ? plain.concat([MIX_CARD]) : plain);
   sections.forEach(sec=>{
     wrap.appendChild(el("div","section-heading", sec.name));
     sec.dates.forEach(grp=>{
@@ -175,8 +188,8 @@ function endSession(){
   // parent has just left.
   if(sess) sess.over = true;
   progress.sessions.push({
-    at: new Date().toISOString(), kind: sess.kind,
-    level: levelOf(sess.kind),
+    at: new Date().toISOString(), kind: sess.mix ? MIX_ID : sess.kind,
+    level: sess.kind ? levelOf(sess.kind) : 0,
     correct: sess.correct, misses: sess.misses, prompts: sess.prompts,
     firstTry: sess.clean, secs: Math.round((Date.now()-sess.started)/1000)
   });

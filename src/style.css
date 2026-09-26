@@ -99,6 +99,10 @@
   .card .ic{font-size:clamp(26px,4.6vw,32px);line-height:1}
   .card .nm{font-size:clamp(11px,2vw,13px);font-weight:bold;letter-spacing:.5px;line-height:1.25}
   .card:active{transform:scale(.97)}
+  /* Mix isn't a game, so it doesn't get a game's colour. A dashed accent edge
+     on a plain tile marks it as the odd thing in the row without inventing a
+     twelfth pale hue that would only be a hair off one of the eleven. */
+  .card.mix{background:var(--card);border:2px dashed rgba(58,134,255,.38)}
   .card.off{opacity:.4}
   /* The parent's row, deliberately quiet and outside the tile: small, grey, no
      card of its own, so it reads as a note under his tile rather than as part

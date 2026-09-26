@@ -41,6 +41,17 @@ function evaluateMastery(id, independent){
       if(!S.neverDemote) setLevelOf(id, curLevel - 1);
       p = {n:0,indep:0,hits:0};
     } else if(rate >= 0.8){
+      /* Holding a level is showing it, so it counts as a best in its own right
+         — not only the level he is promoted INTO. Recording it only on
+         promotion left two holes that both ended with him back on Level 1 the
+         next morning having already proved far more: the top of a ladder can
+         never be advanced past, so mastering it recorded nothing at all; and a
+         level a parent set the stepper to recorded nothing until he climbed
+         off it. Moving the stepper alone still proves nothing — he has to pass
+         a block there. And this cannot fast-track the climb: `needed` compares
+         curLevel against the best, so a best equal to curLevel still asks for
+         two consecutive blocks. */
+      noteBestLevel(id, curLevel);
       p.hits = (p.hits||0) + 1;
       if(p.hits >= needed && curLevel < maxLevel){
         setLevelOf(id, curLevel + 1);
@@ -56,6 +67,35 @@ function evaluateMastery(id, independent){
   progress.perLevel[key] = p;
   save();
 }
+/* The standing picture of every activity, for the Progress panel — kept here
+   beside the counters it reads rather than being worked out inside the panel,
+   and free of the DOM so it can be tested directly.
+
+   `rounds` and `clean` come from the session log, which records one row per
+   sitting; `level` and `best` come from the live state, so a game he has never
+   played still shows where a launch would start him. Sorted by how far behind
+   his best the game is being played, so anything whose mornings are being
+   wasted floats to the top. */
+function activityStats(){
+  const played = {};
+  (progress.sessions || []).forEach(s=>{
+    const a = played[s.kind] || (played[s.kind] = { rounds:0, clean:0, secs:0 });
+    a.rounds += s.correct || 0;
+    a.clean  += s.firstTry || 0;
+    a.secs   += s.secs || 0;
+  });
+  return ACTIVITIES.map(act=>{
+    const p = played[act.id] || { rounds:0, clean:0, secs:0 };
+    const level = levelOf(act.id);
+    return {
+      id: act.id, name: act.name, oneShot: !!act.oneShot,
+      level, max: act.maxLevel(), best: bestLevel(act.id),
+      rounds: p.rounds, clean: p.clean, secs: p.secs,
+      behind: act.oneShot ? -1 : bestLevel(act.id) - level
+    };
+  }).sort((a, b)=> b.behind - a.behind);
+}
+
 /* Optional per-round tagging. An activity passes a tag to api.solved() when a
    round belongs to a sub-category worth tracking separately — Patterns uses it
    for which real-object theme came up — and Settings surfaces the breakdown. */

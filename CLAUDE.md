@@ -526,6 +526,36 @@ through the real page and fails if either comes back. Levels he has already reac
 the app restarts at level 1 every launch and re-climbing would otherwise cost
 hundreds of answers a session.
 
+**Mix is a session mode, not an activity — and it is one more card, not a new
+default.** Everywhere else a sitting is one game until a parent taps back, so
+he works out what the task is once and is then on rails; blocked practice like
+that looks better on the day and transfers worse. Mix makes the shell choose
+the game each round instead, so he has to recognise WHICH kind of problem this
+is before he can solve it, which is most of what makes a skill leave the app.
+
+It is a mode rather than an activity on purpose: `sess.kind` becomes whichever
+game the round belongs to, so levels, mastery, the corner readout and the tag
+stats all route to the real game with no wrapping and no special cases. A
+Patterns round played inside Mix counts towards Patterns, at Patterns' own
+level, exactly as if he had opened Patterns. That routing is the one thing here
+that could go wrong invisibly — banked against "mix", his levels would simply
+stop moving and nothing would look broken — so `tests/mix.test.js` leans on it
+hardest and fails loudly when it is broken on purpose.
+
+Three deliberate limits. It switches every `MIX_RUN` rounds rather than every
+single one: round-by-round is the stronger interleave and also the harshest for
+a child who leans on knowing what is coming, and that is the one number to
+change if watching him says otherwise. One-shot games are never in the pool —
+they are whole games with an ending, not rounds. And a mixed sitting keeps one
+block target for its whole length, or the reward would fire mid-mix the moment
+a word game came up, since those ask for one round each.
+
+Above all it is **added to the row, not put in front of it**: picking a single
+game is exactly where it was. This cuts against **same every time** more than
+anything else in the app, and for an autistic 4-year-old that predictability is
+load-bearing rather than decorative — so it is offered, watched, and easy to
+ignore. If it unsettles him, the cost of removing it is one card.
+
 **Play never stops.** There is no "done for today" and no session cap. It runs
 until a parent taps back. Toondemy's one-shot games are the one deliberate
 exception — see **A one-shot game's reward waits for a tap** above — because
@@ -537,8 +567,27 @@ whatever level he happened to be mid-climb on when the tablet was closed.
 Starting from 1 every session cost hundreds of answers to re-climb; starting
 cold at his frontier skips a warm-up he benefits from. The mastery rule already
 clears ground he has passed before in one good block instead of two, so those
-two levels go quickly. Only auto-advance records a best — moving the stepper by
-hand doesn't, because that's a parent's judgement, not something he has shown.
+two levels go quickly.
+
+**Holding a level records it as a best, not only being promoted out of one.**
+The whole warm-up above rests on `progress.best` being right, and recording it
+only on promotion left two holes that both ended with him back on Level 1 the
+next morning having already proved far more. The top of a ladder can never be
+advanced past, so **mastering the top level recorded nothing at all**; and a
+level a parent set the stepper to recorded nothing until he climbed off it. So
+a block passed at 80% now records that level too. Moving the stepper by hand
+still records nothing on its own — that's a parent's judgement, not something
+he has shown — he has to pass a block there. It cannot fast-track the climb
+either: `needed` compares `curLevel` against the best, so a best equal to the
+level he is on still asks for two consecutive blocks.
+
+**The Progress panel answers "where is he", not just "what happened".** The
+session list is a log, one row per sitting, and you cannot see from it that he
+has been sitting on level 10 of something for a fortnight. `activityStats()`
+in 40-mastery.js gives the standing picture instead — where each game is now,
+the best he has ever held, how many rounds and what share he answered alone —
+sorted by how far below his best each game is being played, so anything whose
+mornings are being wasted floats to the top.
 
 **A confirmation block is 5 answers, not 10** (`itemsPerSession`). Changing a
 default here does nothing on its own for a tablet that already has a save:

@@ -61,11 +61,55 @@ let sess = null;
 
 function activityById(id){ return ACTIVITIES.find(a => a.id === id) || ACTIVITIES[0]; }
 
+/* ---- MIX: one sitting, several games ----
+   Everywhere else a sitting is one game until a parent taps back — he works
+   out what the task is once and is then on rails. Mix makes the shell choose
+   the game each time instead, so he has to recognise WHICH kind of problem
+   this is before he can solve it. That recognition is most of what makes a
+   skill leave the app, and a block of one game quietly skips it.
+
+   It is a session MODE, not an activity: `sess.kind` becomes whichever game
+   this round belongs to, so levels, mastery, the corner readout and the tag
+   stats all route to the real game with no wrapping and no special cases. A
+   Patterns round played inside Mix counts towards Patterns, at Patterns' own
+   level, exactly as if he had opened Patterns.
+
+   Deliberately NOT one game per round. Switching every single round is the
+   stronger interleave, and for a 4-year-old who leans on knowing what is
+   coming it is also the harshest — MIX_RUN is the one number to change if
+   watching him says otherwise. And it is offered as one more card rather than
+   replacing the grid: picking a single game is still there, untouched. */
+const MIX_ID = "mix";
+const MIX_RUN = 2;        // rounds of one game before it switches
+
+/* One-shot games are whole games with an ending of their own, not rounds, so
+   they never turn up here; a game switched off in Settings doesn't either,
+   which is how a parent narrows the mix without any new setting. */
+function mixPool(){
+  return ACTIVITIES.filter(a => !a.oneShot && isEnabled(a.id));
+}
+/* A shuffle bag, like the reward pictures and both word games use: every game
+   comes up before any comes up twice, so nothing is starved and nothing
+   dominates. */
+function mixNext(){
+  if(!sess.bag || !sess.bag.length){
+    sess.bag = shuffle(mixPool().map(a => a.id));
+    // ...and a refilled bag never opens with the game that just finished
+    if(sess.bag.length > 1 && sess.bag[0] === sess.kind) sess.bag.push(sess.bag.shift());
+  }
+  return sess.bag.shift();
+}
+
 function startSession(id){
-  const target = rewardTargetFor(activityById(id));
+  const mix = id === MIX_ID;
   sess = {
-    kind: id, correct:0, misses:0, prompts:0, started:Date.now(),
-    sinceReward:0, target, attempts:0, clean:0, asked:0
+    kind: mix ? null : id, mix, runLeft: 0, bag: null,
+    correct:0, misses:0, prompts:0, started:Date.now(),
+    // a mix keeps one block target for the whole sitting: letting each round's
+    // own game set it would fire the reward mid-mix the moment a word game
+    // came up, since those ask for one round each
+    sinceReward:0, target: mix ? rewardTarget() : rewardTargetFor(activityById(id)),
+    attempts:0, clean:0, asked:0
   };
   show("#play");
   renderTokens();
@@ -88,7 +132,8 @@ function updateLevelWatermark(){
   const needed = lvl < bestLevel(act.id) ? 1 : 2;     // familiar ground passes on one good block
 
   wm.innerHTML = "";
-  wm.appendChild(el("span","lvw-level","Level " + lvl));
+  // In a mix, "Level 3" alone says nothing — a parent needs to know of what.
+  wm.appendChild(el("span","lvw-level", (sess.mix ? act.name + " · " : "") + "Level " + lvl));
   // the level-change flash is bookkept before any early return, so toggling
   // auto-advance off and on again can't leave a stale level behind and flash
   if(wmLevel !== null && lvl !== wmLevel){
@@ -155,6 +200,10 @@ function afterCorrect(){
 function nextRound(){
   sess.roundDone = false; sess.roundMisses = 0;
   sess.attempts = 0; sess.asked++; sess.hintShownThisRound = false;
+  // In a mix, which game this round belongs to is decided here — and from this
+  // line down nothing else in the shell knows the difference.
+  if(sess.mix && sess.runLeft <= 0){ sess.kind = mixNext(); sess.runLeft = MIX_RUN; }
+  if(sess.mix) sess.runLeft--;
   const act = activityById(sess.kind);
   const stage = $("#stage"); stage.innerHTML = "";
   updateLevelWatermark();
