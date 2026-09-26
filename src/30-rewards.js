@@ -203,7 +203,8 @@ function showReward(){
   const act = activityById(sess.kind);
   const a = takePinnedReward() || nextAnimal();
   sess.sinceReward = 0;
-  sess.target = rewardTargetFor(act);
+  // a mix holds one block target for the whole sitting — see startSession()
+  if(!sess.mix) sess.target = rewardTargetFor(act);
   const img = $("#rwImg"); img.innerHTML = "";
   if(a.type === "img"){ const i = el("img"); i.src = a.url; img.appendChild(i); }
   else { img.appendChild(el("div","em", a.em)); }

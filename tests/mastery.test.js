@@ -25,12 +25,52 @@ const SRC = path.resolve(__dirname, "..", "src");
 const code =
   PRELUDE +
   fs.readFileSync(path.join(SRC, "40-mastery.js"), "utf8") +
-  "\n;({ evaluateMastery, reset, get S(){return S;}, get progress(){return progress;} });";
+  "\n;({ evaluateMastery, reset, setLevelOf, get S(){return S;}, get progress(){return progress;} });";
 const ctx = vm.createContext({ console, Object, Math });
 const M = vm.runInContext(code, ctx);
 
 const block = (rate, id) => { for (let i = 0; i < M.S.itemsPerSession; i++) M.evaluateMastery(id || "pattern", i < rate); };
 const lvl = (id) => (M.S.levels[id || "pattern"] || 1);
+
+/* --- what counts as a BEST, and why it is not only auto-advance ---
+   A best is what a fresh launch picks up from (startLevelFor in 00-state.js:
+   two levels below it). Recording one only when he advances PAST a level left
+   two holes that both end with him back on Level 1 next morning, having
+   already proved he can do far more:
+     - the top of a ladder can never be advanced past, so mastering it recorded
+       nothing at all;
+     - a level a parent set the stepper to and he then proved recorded nothing
+       until he climbed off it.
+   Holding a level is showing it, so holding it records it. Moving the stepper
+   by hand still records nothing on its own — he has to pass a block there. */
+M.reset(0, 5);
+M.setLevelOf("pattern", 2);
+for (let i = 0; i < 5; i++) M.evaluateMastery("pattern", true);
+check(M.progress.best.pattern === 2, "a good block at a level records that level as his best");
+// (level 1 needs no recording of its own — it is already the floor a launch
+// starts from, so noteBestLevel leaves it alone)
+
+// the top of the ladder: nothing to advance into, but he has plainly shown it
+M.reset(0, 5);
+M.setLevelOf("pattern", 40);                      // a parent put him at the top
+for (let i = 0; i < 5; i++) M.evaluateMastery("pattern", true);
+check(lvl() === 40, "he stays at the top of the ladder — there is nowhere above it");
+check(M.progress.best.pattern === 40,
+  "and mastering the top level records it, so the next launch starts near it rather than at Level 1");
+
+// a level a parent chose, proved before he has climbed off it
+M.reset(0, 5);
+M.setLevelOf("pattern", 10);
+for (let i = 0; i < 5; i++) M.evaluateMastery("pattern", true);
+check(M.progress.best.pattern === 10,
+  "a level the stepper was moved to and then actually proved counts as his best");
+
+// ...but the stepper alone still proves nothing
+M.reset(0, 5);
+M.setLevelOf("pattern", 10);
+check(!M.progress.best.pattern, "moving the stepper without playing records nothing");
+for (let i = 0; i < 5; i++) M.evaluateMastery("pattern", i < 1);   // a bad block
+check(!M.progress.best.pattern, "and a block he did badly at records nothing either");
 
 // --- new ground needs two consecutive good blocks ---
 M.reset();

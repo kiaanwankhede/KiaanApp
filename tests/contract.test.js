@@ -71,7 +71,9 @@ const click = (el) => el.dispatchEvent(new window.Event("click", { bubbles: true
 
 setTimeout(() => {
   // a home card, with no markup written for it
-  check(doc.querySelectorAll(".card").length === REGISTERED + 1,
+  // the registry + the throwaway activity spliced in + the Mix card, which is
+  // not an activity and so is not in the registry
+  check(doc.querySelectorAll(".card").length === REGISTERED + 2,
     "one more home card appears purely from the registry");
   check(!!$("#card-fake"), "the new activity gets its own card");
   check(/MEMORY/.test($("#card-fake").textContent), "the card shows the activity's name");

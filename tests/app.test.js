@@ -23,8 +23,16 @@ const back = () => window.dispatchEvent(new window.PopStateEvent("popstate", { s
 setTimeout(() => {
   // ---- boot ----
   check($("#home").classList.contains("on"), "boots to the home screen");
-  check(doc.querySelectorAll(".card").length === registeredActivities().length,
-    "every registered activity has a home card");
+  /* Every registered activity, plus Mix — which is a way to play rather than a
+     game, so it is not in the registry but still gets a card. */
+  check(doc.querySelectorAll(".card").length === registeredActivities().length + 1,
+    "every registered activity has a home card, and Mix has one too");
+  const mix = $("#card-mix");
+  check(!!mix && /MIX/.test(mix.textContent), "Mix gets a card of its own");
+  check(!!mix && !mix.closest(".cardcell").querySelector(".lvrow"),
+    "with no level stepper — each round in a mix runs at its own game's level, so Mix has none");
+  check(!!mix && mix.classList.contains("mix"),
+    "and it is marked out from the games rather than given a twelfth colour");
 
   /* ...and every one of them can actually be reached. Nine cards plus the
      section and date headings are taller than a tablet, and the home screen is

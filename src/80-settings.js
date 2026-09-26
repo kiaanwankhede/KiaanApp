@@ -113,6 +113,27 @@ async function openSettings(){
 
   /* progress */
   const g5 = group("Progress");
+
+  /* Where he actually is, per game. The session list below is a log — it says
+     what happened, one sitting at a time, and you cannot see from it that he
+     has been sitting on level 10 of something for a fortnight. This is the
+     standing picture: where he is now, the best he has ever held, and how much
+     of it he has done. "Best" is what a fresh launch picks up from (two levels
+     below it, WARM_UP_DROP in 00-state.js), so a game whose best lags far
+     behind where he plays is a game whose mornings are being wasted. */
+  const summary = activityStats();
+  if(summary.length){
+    g5.appendChild(el("div","hint","Where he is · best he has held · rounds · answered alone"));
+    summary.forEach(a=>{
+      const r = el("div","stat");
+      r.appendChild(el("span", null, a.name + (a.oneShot ? "" : "  L" + a.level + "/" + a.max)));
+      const alone = a.rounds ? Math.round((a.clean / a.rounds) * 100) + "%" : "—";
+      r.appendChild(el("span", null,
+        (a.oneShot ? "" : "best " + a.best + " · ") + a.rounds + " rounds · " + alone));
+      g5.appendChild(r);
+    });
+  }
+
   const last = progress.sessions.slice(-12).reverse();
   if(!last.length) g5.appendChild(el("div","hint","No sessions yet."));
   last.forEach(s=>{
