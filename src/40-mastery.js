@@ -35,11 +35,17 @@ function evaluateMastery(id, independent){
   const key = id + ":" + curLevel;
   let p = progress.perLevel[key] || {n:0, indep:0, hits:0};
   p.n++; if(independent) p.indep++;
+  /* n, indep and hits are all block counters — they zero at every block
+     boundary, which is right for deciding a level and useless for noticing he
+     has been on one for a fortnight. `seen` never resets, so the Progress
+     panel can tell "he is on level 12" apart from "he has answered sixty
+     rounds at level 12 and is still there". */
+  p.seen = (p.seen || 0) + 1;
   if(p.n >= blockSize){
     const rate = p.indep / p.n;
     if(rate < 0.5 && curLevel > 1){
       if(!S.neverDemote) setLevelOf(id, curLevel - 1);
-      p = {n:0,indep:0,hits:0};
+      p = {n:0,indep:0,hits:0, seen:p.seen};
     } else if(rate >= 0.8){
       /* Holding a level is showing it, so it counts as a best in its own right
          — not only the level he is promoted INTO. Recording it only on
@@ -56,7 +62,7 @@ function evaluateMastery(id, independent){
       if(p.hits >= needed && curLevel < maxLevel){
         setLevelOf(id, curLevel + 1);
         noteBestLevel(id, curLevel + 1);
-        p = {n:0,indep:0,hits:0};
+        p = {n:0,indep:0,hits:0, seen:p.seen};
       } else {
         p.n = 0; p.indep = 0; // one confirmation banked; next block can confirm the level-up
       }
@@ -87,13 +93,18 @@ function activityStats(){
   return ACTIVITIES.map(act=>{
     const p = played[act.id] || { rounds:0, clean:0, secs:0 };
     const level = levelOf(act.id);
+    const here = (progress.perLevel || {})[act.id + ":" + level] || {};
     return {
       id: act.id, name: act.name, oneShot: !!act.oneShot,
       level, max: act.maxLevel(), best: bestLevel(act.id),
       rounds: p.rounds, clean: p.clean, secs: p.secs,
+      // how many answers he has given AT the level he is on now, ever — the
+      // difference between "he is on level 12" and "he has answered sixty
+      // rounds at level 12 and is still there"
+      atLevel: here.seen || 0,
       behind: act.oneShot ? -1 : bestLevel(act.id) - level
     };
-  }).sort((a, b)=> b.behind - a.behind);
+  }).sort((a, b)=> (b.atLevel - a.atLevel) || (b.behind - a.behind));
 }
 
 /* Optional per-round tagging. An activity passes a tag to api.solved() when a

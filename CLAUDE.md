@@ -1,8 +1,8 @@
 # Think & Sort
 
-A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Eleven
+A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Twelve
 activities so far — Patterns, Sorting, Order, How many, Trace, Match, Odd one
-out, Word find, Finish the word, Sky and Nine — built as
+out, Where is it?, Word find, Finish the word, Sky and Nine — built as
 **one offline HTML file** that runs from a tablet with no network, no install
 and no dependencies.
 
@@ -56,6 +56,9 @@ src/
     count.js       "how many?" — match amounts, 21 levels in 6 stages, up to 10
     trace.js       "follow the line" — strokes, then numbers 0–9, then smaller, 30 levels
     match.js       "what goes with it?" — association pairs, 22 levels
+    where.js       "find the same one" — a thing in, on, under or beside a box, and
+                   the same arrangement to pick out below; no word ever names a
+                   position, 15 levels
     odd.js         "which one is different?" — three share something, one doesn't, and
                    nothing says what; 21 levels sorted by load
     wordfind.js    "find the word" — a word's letters, the same letters hidden in a grid,
@@ -147,6 +150,35 @@ obvious near miss: **Categories must be nameable** below rules it out, and a
 round a fair grown-up could argue with is not a hard round, it is a broken one.
 Letter versus number was considered for the top and left out on the same test.
 
+**Where is it? teaches a relation, and never names it.** In, on, under and
+beside are among the first relations a child is asked to *act* on ("put it
+under the table"), they are a common early-intervention target rather than
+something that simply arrives, and they are the one kind of meaning this app
+can teach without saying a word. So nothing in it names a position: the prompt
+is "find the same one", the task is matching an arrangement, and the concept is
+built before the words attach to it out in the world — which is the order they
+actually arrive in. Don't add labels to make it "clearer": the moment a round
+needs a word read, it stops being a round he can do.
+
+**Its guard is Odd one out's inversion all over again: only the position may
+differ.** Every choice in a round is the SAME thing in the SAME container in
+the SAME colour, so where the thing sits is the only thing telling them apart.
+Let the objects vary between choices and "find the one with the red ball"
+answers the round without a thought about position — precisely the latching
+guard above, arrived at from the other side. `tests/where.test.js` builds every
+level many times over and fails if two choices ever differ by anything but
+position.
+
+**And the top of its ladder is the whole reason to build it.** What rises with
+level, besides how many choices and how many positions are in play, is whether
+the choices are made of the same things as the picture he is matching. At the
+bottom they are — a ball and a box above, the same ball and box below — so the
+arrangement can be matched almost as a picture. At the top nothing is shared
+but the relation itself: a ball on a box above, a star and a bowl below. That
+is the difference between recognising a picture and holding "on-ness" apart
+from whatever happens to be on whatever. The picture-matching levels are the
+ramp, not the game — don't flatten the ladder back onto them.
+
 **Ladders are ordered by real difficulty, not by structure.** Both activities
 score every level with an explicit load (how much the structure taxes working
 memory + how abstract the content is) and sort by it. This exists because the
@@ -217,6 +249,14 @@ twice running) and the home card is COUNT on some launches and HOW MANY on
 others. A skill tied to one exact phrase can fail when someone asks it
 differently. This is the one place where the "same every time" principle is
 deliberately relaxed — for words only. Layout, icon and task never change.
+
+**A round says what kind it was.** `api.solved(tag)` is optional in the
+contract, and How many now uses it as Patterns, Odd one out and Where is it? do
+— counting things, number-then-count, count-then-number, numbers only. It costs
+one argument and it turns "he is on level 14" into "he reads a numeral and
+counts that many out, but two numerals side by side are still guesswork", which
+is the difference between knowing where he is and knowing what to do about it.
+Tag anything whose sub-kinds a parent would act on differently.
 
 **Trace teaches the movement; paper builds the hand.** The tablet is for
 which way a stroke goes and how to steer it. Glass has no friction, so grip
@@ -588,6 +628,17 @@ in 40-mastery.js gives the standing picture instead — where each game is now,
 the best he has ever held, how many rounds and what share he answered alone —
 sorted by how far below his best each game is being played, so anything whose
 mornings are being wasted floats to the top.
+
+**"How long has he been there" needs a counter that never resets.** `perLevel`'s
+`n`, `indep` and `hits` are block counters — they zero at every block boundary,
+which is exactly right for deciding a level and useless for noticing he has sat
+on one for a fortnight. So `seen` counts every answer given at a level for good,
+is carried through both of the wholesale resets in `evaluateMastery()`, and
+comes out as `atLevel` in `activityStats()`. Settings sorts on it and, once he
+has spent four blocks' worth of answers at a level and his clean share in that
+game is under 60%, says "stuck on level N — worth stepping down". It stays a
+warning and never touches the stepper: that is the parent's, everywhere in this
+app.
 
 **A confirmation block is 5 answers, not 10** (`itemsPerSession`). Changing a
 default here does nothing on its own for a tablet that already has a save:

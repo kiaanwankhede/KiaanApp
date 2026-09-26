@@ -72,6 +72,32 @@ check(!M.progress.best.pattern, "moving the stepper without playing records noth
 for (let i = 0; i < 5; i++) M.evaluateMastery("pattern", i < 1);   // a bad block
 check(!M.progress.best.pattern, "and a block he did badly at records nothing either");
 
+/* --- how long he has been on this level ---
+   n, indep and hits are block counters: they zero at every block boundary,
+   which is right for deciding a level and useless for noticing he has been
+   sitting on one for a fortnight. `seen` never resets, and it is what lets the
+   Progress panel tell "he is on level 12" apart from "he has answered sixty
+   rounds at level 12 and is still there". */
+M.reset(0, 5);
+for (let i = 0; i < 12; i++) M.evaluateMastery("pattern", i % 5 === 0);   // scrappy blocks
+check(M.progress.perLevel["pattern:1"].seen === 12,
+  `every answer at a level is counted for good (got ${M.progress.perLevel["pattern:1"].seen})`);
+check(M.progress.perLevel["pattern:1"].n < 12, "while the block counter itself keeps resetting");
+
+// it survives a level-up: the new level starts its own count from zero
+M.reset(0, 5);
+for (let i = 0; i < 10; i++) M.evaluateMastery("pattern", true);          // two clean blocks -> level 2
+check(lvl() === 2, "two clean blocks move him up");
+check(M.progress.perLevel["pattern:1"].seen === 10, "the level he left keeps its total");
+check(!M.progress.perLevel["pattern:2"], "and the level he arrived at has no history yet");
+
+// and a demotion doesn't wipe the record of how much he did there
+M.reset(0, 5);
+M.setLevelOf("pattern", 3);
+for (let i = 0; i < 5; i++) M.evaluateMastery("pattern", false);         // a bad block
+check(M.progress.perLevel["pattern:3"].seen === 5,
+  "a rough block still leaves the count of what he answered there");
+
 // --- new ground needs two consecutive good blocks ---
 M.reset();
 block(9);

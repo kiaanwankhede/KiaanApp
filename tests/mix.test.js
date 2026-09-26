@@ -34,11 +34,14 @@ window.__tns = { get sess(){ return sess; }, MIX_RUN, MIX_ID, mixPool, levelOf }
 const html = base.replace(/\n\n\}\)\(\);\n<\/script>\n?$/, "\n" + HOOK + "\n})();\n</script>\n");
 check(html !== base, "the test hook spliced into the built page");
 
-/* Only the games that share the slot-and-options shape are left on, so one
-   mover plays all of them; the rest are switched off, which doubles as the
-   check that Mix honours Settings. */
-const ON = ["pattern", "count", "match", "wordfill"];
-const OFF = ["sort", "seriate", "trace", "odd", "wordfind"];
+/* ON is every game whose round this file's one mover can actually play — the
+   slot-and-options shape. OFF is the rest, switched off in Settings, which
+   doubles as the check that Mix honours those switches. A new activity of the
+   slot-and-options kind belongs in ON; anything with its own gesture (a sweep,
+   a traced line, bins) belongs in OFF. One-shot games need no entry: Mix
+   excludes them itself. */
+const ON = ["pattern", "count", "match", "odd", "where", "wordfill"];
+const OFF = ["sort", "seriate", "trace", "wordfind"];
 const enabled = {};
 OFF.forEach((id) => { enabled[id] = false; });
 
