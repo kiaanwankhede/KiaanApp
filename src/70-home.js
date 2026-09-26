@@ -23,10 +23,51 @@ function formatSectionDate(iso){
   const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   return d + " " + MONTHS[m - 1] + " " + y;
 }
+/* A soft colour per game, and the same one forever.
+
+   Nine white boxes differing only by emoji is the weakest identifier there is
+   for someone who cannot read the names — colour plus picture is a far faster
+   one, and "the green one" is how he will actually find Order. Fixed per id
+   rather than by position in the registry, so adding an activity never shuffles
+   the colours he has already learned.
+
+   All of them are pale on purpose. The screen used to carry nine saturated blue
+   PLAY pills, which were the loudest thing on it; a wash at this lightness
+   gives each tile an identity without raising the contrast of the page. An id
+   with no colour here falls back to plain white and works exactly as before —
+   adding an activity stays the three one-line changes CLAUDE.md promises. */
+const CARD_TINTS = {
+  pattern:  "#eaf1fd",     // blue
+  sort:     "#e9f5ef",     // green
+  seriate:  "#fdf0e6",     // peach
+  count:    "#fdf8e3",     // butter
+  trace:    "#f1edfb",     // lavender
+  match:    "#fdeef1",     // rose
+  wordfind: "#e7f3f6",     // teal
+  wordfill: "#eceafa",     // periwinkle
+  sky:      "#fdf4e4",     // sand
+  nine:     "#eff6ea"      // leaf
+};
+
+/* The tile IS the button. There used to be a separate PLAY pill inside the
+   card, which meant his one decision competed with four other things in the
+   same box and the actual target was the smallest of them. Now the whole tile
+   is what he taps, and the parent's level control sits BELOW it, outside the
+   tile — two audiences, two places, no risk of a stray tap on "+" doing
+   nothing when he meant to start the game. */
 function buildCard(act){
-  const card = el("div","card"); card.id = "card-" + act.id;
+  const cell = el("div","cardcell");
+
+  const card = el("button","card playbtn"); card.id = "card-" + act.id;
+  card.dataset.kind = act.id;
+  card.style.setProperty("--tint", CARD_TINTS[act.id] || "var(--card)");
   card.appendChild(el("div","ic", act.icon));
   card.appendChild(el("div","nm", act.name));
+  card.addEventListener("click", ()=>{
+    goFullscreen(); keepAwake();   // a tap on the tile is a real user gesture, so both are allowed
+    if(isEnabled(act.id)) startSession(act.id);
+  });
+  cell.appendChild(card);
 
   if(!act.oneShot){
     const row = el("div","lvrow");
@@ -34,19 +75,12 @@ function buildCard(act){
     const label = el("div","lv"); label.id = "lv-" + act.id;
     const plus  = el("button","lvbtn","+"); plus.dataset.kind = act.id; plus.dataset.dir = "1";
     row.append(minus, label, plus);
-    card.appendChild(row);
+    cell.appendChild(row);
     minus.addEventListener("click", ()=>changeLevel(act.id, -1));
     plus .addEventListener("click", ()=>changeLevel(act.id,  1));
   }
 
-  const play = el("button","playbtn","▶ PLAY"); play.dataset.kind = act.id;
-  card.appendChild(play);
-
-  play .addEventListener("click", ()=>{
-    goFullscreen(); keepAwake();   // PLAY is a real user gesture, so both are allowed here
-    if(isEnabled(act.id)) startSession(act.id);
-  });
-  return card;
+  return cell;
 }
 /* Pure grouping, kept free of the DOM so it can be tested on its own —
    activities in registry order for the plain row and within a date group;
@@ -112,11 +146,11 @@ function updateHomeLabels(){
   ACTIVITIES.forEach(act=>{
     const lv = levelOf(act.id);
     const label = $("#lv-" + act.id);
-    if(label){
-      const max = act.maxLevel();
-      label.innerHTML = act.levelLabel(lv) +
-        `<br><span style="font-size:10px;opacity:.65">Level ${lv}/${max}</span>`;
-    }
+    // Just the number. The "AB · Colour" blurb used to sit here too, in two
+    // lines of 10px grey under every tile — seven of those is a lot of noise
+    // for something a parent reads once, and it made every strip a different
+    // height. Settings carries it in full, and in the session history.
+    if(label) label.textContent = "Level " + lv + "/" + act.maxLevel();
     const card = $("#card-" + act.id);
     if(card) card.classList.toggle("off", !isEnabled(act.id));
     const play = document.querySelector('.playbtn[data-kind="'+act.id+'"]');

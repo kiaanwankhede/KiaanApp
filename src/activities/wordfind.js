@@ -111,18 +111,12 @@ const WF_CUE_LEVELS = 4;       // up to here the word is lightly highlighted; th
 
 const WF_ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-/* The pool is whatever the reward screen could actually put a picture under,
-   at this word length — so a missing picture drops a word from the game
-   instead of showing him a blank. */
-function wfWords(len){
-  const out = [];
-  EMOJI_PACK.forEach(p=>{
-    const w = p[0];
-    if(w.length !== len || /[^A-Z]/.test(w)) return;     // no spaces, no punctuation
-    if(pictureForWord(w)) out.push(w);
-  });
-  return out;
-}
+/* The pool is whatever the reward screen could actually put a picture under, at
+   this word length — so a missing picture drops a word from the game instead of
+   showing him a blank. It lives in the shell (wordsOfLength, src/30-rewards.js)
+   because Finish the word draws from the same vocabulary, and two activities
+   each with their own idea of what counts is how the two quietly drift apart. */
+function wfWords(len){ return wordsOfLength(len); }
 
 /* One bag per word length, so a stage works through its words rather than
    asking for the same favourite twice running. */

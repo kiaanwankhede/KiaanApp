@@ -1,8 +1,8 @@
 # Think & Sort
 
-A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Nine
+A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Ten
 activities so far — Patterns, Sorting, Order, How many, Trace, Match, Word
-find, Sky and Nine — built as
+find, Finish the word, Sky and Nine — built as
 **one offline HTML file** that runs from a tablet with no network, no install
 and no dependencies.
 
@@ -39,7 +39,8 @@ src/
   20-stimuli.js    shared visual vocabulary: colours, shapes, themes, renderers
   30-rewards.js    reward picture + spelling, shuffle bag, IndexedDB photo store;
                    pictureForWord() and pinReward(), for an activity that needs a
-                   particular word's picture rather than the next one in the bag
+                   particular word's picture rather than the next one in the bag;
+                   wordsOfLength(), the shared vocabulary both word games draw on
   photos/          153 reward photographs (.webp) + credits.json; inlined at build
   35-drag.js       pointer-events drag and drop
   36-trace-engine.js  shared "follow the line" engine: traceTracker (the judge, DOM-free
@@ -58,6 +59,8 @@ src/
     wordfind.js    "find the word" — a word's letters, the same letters hidden in a grid,
                    the photo of what it says as the reward for finding them; works through
                    the whole saved vocabulary, 38 levels in 9 stages
+    wordfill.js    "finish the word" — a photo and its word with one letter missing (C _ T),
+                   drag the right letter in from a few choices; 30 levels in 6 stages
     sky.js         "follow the line" again, dressed as reaching a real thing — three rays,
                    three raindrops, three kite strings, three flight paths, one fixed game
     nine.js        "fill all nine" — bees into hives, ladybirds onto leaves, Sorting's
@@ -284,15 +287,54 @@ no room for them to be anything but cruel. Grids stay wide rather than square
 once words get long, which also makes the longest words across-only for free:
 down is offered only where the word actually fits down the grid.
 
-**Word find's reward is the word he just found, every round.** Every other
-graded activity rewards after a block (`S.rewardEvery`); this one sets
-`rewardEveryRound` in the contract and gets a target of exactly 1, because here
-the reward screen IS the content — the photograph and spelling it shows are the
-thing being taught, so waiting five rounds would put the picture up long after
-he had forgotten which word earned it. The activity calls `pinReward(word)`
+**Both word games reward the word he just did, every round.** Every other
+graded activity rewards after a block (`S.rewardEvery`); these two set
+`rewardEveryRound` in the contract and get a target of exactly 1, for reasons
+that are related but not the same. In **Word find** the reward screen IS the
+content: the word is a mystery made of letters until he sweeps it, and the
+photograph is the reveal. In **Finish the word** the small picture above the
+gap is the *question*, and far too incidental to be an answer to anything —
+without a reward on the round he earned it, spelling BUS ended with a green
+letter and then the next round, and nothing ever said "yes, that was a bus".
+Either way, waiting a block would put the picture up long after he had
+forgotten which word earned it. The activity calls `pinReward(word)`
 before it solves, so the picture is of what he found rather than a stranger
 from the shuffle bag. It is still an ordinary ladder otherwise: stepper,
 mastery and Settings all behave exactly as everywhere else.
+
+**Finish the word shows the photograph, and that is not a contradiction.**
+Word find deliberately holds the picture back, because there the whole word's
+letters are on screen and a picture above them gives away its own reveal. Here
+the opposite holds: `C _ T` with no picture could be CAT or COT or CUT, and a
+4-year-old has no way to know which was meant. The picture is not a spoiler in
+this game, it **is** the question — the only thing that says which word he is
+finishing. Never take it away to make this harder; that doesn't make it harder,
+it makes it arbitrary. The two rules point opposite ways because the two games
+put a different thing on screen, not because one of them is wrong.
+
+It is also the step up from Word find: that one is matching letters he can see,
+this one is recalling one he can't. Both draw on the same vocabulary through
+`wordsOfLength()` in src/30-rewards.js — one list, so the two can't drift apart
+on what counts as a word.
+
+**The gap moves first letter, then last, then middle.** That is the order
+children pick sounds up in — initial sound, final sound, and the medial vowel
+last, which is also the one that stays hard — and it is the same reasoning as
+Trace running its strokes in the order handwriting actually develops. Don't
+"simplify" it into always blanking the middle because the `C_T` example looks
+neat: the middle is the end of the ladder, not the start of it. Word length is
+the stage; inside a stage the gap moves through those three positions and then
+the number of choices grows.
+
+**Its two guards.** The wrong letters are **always the same kind as the right
+one** — vowels against a vowel, consonants against a consonant. Mixed, "pick
+the only vowel on screen" would answer every medial-vowel round without knowing
+the word at all, which is exactly what **Guard against latching** is about. And
+a wrong letter may never turn the word into **another word this app teaches**:
+a gap with two defensible answers where only one is accepted is a round he
+loses for being right. `tests/wordfill.test.js` checks both over every word at
+every level — and the second guard is what lets that test read the answer
+straight off the page, since exactly one choice can complete a real word.
 
 **Sky is Trace's engine wearing different art, on purpose, and it stops there.**
 A commercial tracing app teaching this identical skill — a line from one thing
@@ -502,6 +544,58 @@ condition and has to travel with the pictures.
 **Silent.** No audio, ever. Visual feedback only.
 
 ---
+
+**The tile IS the button, and each game has its own soft colour.** The first
+home screen put five things in every card — icon, name, a level blurb, "Level
+1/40", two stepper buttons and a bright PLAY pill — so his one decision
+competed with the parent's settings in the same box, and the actual target was
+the smallest thing in it. Now the whole tile is what he taps, and **nothing
+else tappable goes inside it**: a stepper in there means a tap near "+" does
+nothing when he meant to start the game. The parent's level strip sits *under*
+the tile instead — two audiences, two places.
+
+Colour does the identifying. Nine white boxes differing only by emoji is the
+weakest identifier there is for someone who cannot read the names, and "the
+green one" is how he will actually find Sorting. `CARD_TINTS` in src/70-home.js
+keys them by id, not by position, so adding an activity never shuffles the
+colours he has already learned; an id with no entry falls back to a plain tile
+and works, which keeps adding one to the three one-line changes promised above.
+All of them are pale on purpose — the screen used to carry nine saturated blue
+PLAY pills, which were the loudest thing on it, and a wash at this lightness
+gives each tile an identity without raising the contrast of the page at all.
+
+**Everything on the home screen lines up on one left edge, in real columns.**
+The first pass centred each row, so seven tiles came out as four centred and
+then three centred under them: no two rows shared a column and the whole thing
+read as ragged. It is a CSS grid now (`repeat(auto-fill, minmax(140px,1fr))`),
+so every row shares the same columns and a short last row is ragged on the
+*right*, where a short row belongs — and the title, the subtitle, the section
+heading, the date and the first tile of every row all share one left edge
+(`tests/app.test.js` measures that in a browser, not by eye). The column is
+centred in the viewport rather than pinned to the screen edge, which keeps a
+landscape tablet balanced instead of leaving all the empty space on one side;
+on the portrait tablet it fills the width anyway. The block is anchored to the
+TOP, not floated in the vertical middle: once the grid fitted a tablet again,
+centring left it adrift in a field of empty space.
+
+**A tile is flat colour with a hairline edge, and the icon is a label on it,
+not the tile itself.** Pale tint plus a big soft drop shadow plus a 22px radius
+looked muddy and dated, and with no border the tints bled into the pale
+background. So: flat fill, `1px rgba(36,48,68,.08)` (one border value that works
+over every tint, so there is still one colour per game to maintain rather than
+two), 16px radius, almost no shadow. The icon went from 50px to 32px — at 50 it
+was a third of the box and the loud multicolour emoji swamped everything else
+in it.
+
+**The level strip under a tile is one line: `− Level 1/40 +`.** `levelLabel`'s
+wording used to print here as well, and two lines of 10px grey under every tile
+was the noisiest thing on the screen — it also made every strip a different
+height, so the rows sat ragged with the +/− buttons at different heights. The
+wording lives in Settings and the session history instead. The +/− are small on
+purpose, because they are the parent's control and must not compete with his
+tile, so their **hit area is grown past the visible button** (`.lvbtn::after`,
+inset -7px) rather than the button being made bigger — 26px is below any sane
+tap target.
 
 **The home screen scrolls, and is centred only while it fits.** It didn't need
 to at three activities. At nine — seven in the plain row plus a section

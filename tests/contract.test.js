@@ -75,12 +75,16 @@ setTimeout(() => {
     "one more home card appears purely from the registry");
   check(!!$("#card-fake"), "the new activity gets its own card");
   check(/MEMORY/.test($("#card-fake").textContent), "the card shows the activity's name");
-  check(/2 to choose from/.test($("#lv-fake").textContent), "the card shows the activity's own level label");
-  check(/Level 1\/4/.test($("#lv-fake").textContent), "the shell adds the counter from the activity's maxLevel");
+  /* The card carries the level counter, and nothing else: levelLabel's wording
+     used to be printed here too, but two lines of 10px grey under every tile
+     was the noisiest thing on the home screen. It now belongs to Settings and
+     the session history. What matters to the contract is unchanged — a
+     brand-new activity gets a working readout and stepper with no wiring. */
+  check(/Level 1\/4/.test($("#lv-fake").textContent), "the card shows a counter built from the activity's own maxLevel");
 
   // the stepper drives it with no per-activity wiring
   click(doc.querySelector('.lvbtn[data-kind="fake"][data-dir="1"]'));
-  check(/3 to choose from/.test($("#lv-fake").textContent), "the +/- stepper drives the new activity too");
+  check(/Level 2\/4/.test($("#lv-fake").textContent), "the +/- stepper drives the new activity too");
   click(doc.querySelector('.lvbtn[data-kind="fake"][data-dir="-1"]'));
 
   // it plays, using the shared drag/render vocabulary and the reward strip

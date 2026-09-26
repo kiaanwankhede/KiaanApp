@@ -46,6 +46,30 @@ setTimeout(() => {
   check(!/justify-content:\s*center/.test(homeRule),
     "not centred while overflowing either — centring an overflowing column puts its top out of reach too");
 
+  /* ---- the tile IS the button, and the parent's controls are outside it ----
+     There used to be a PLAY pill inside each card, so his one decision competed
+     with four other things in the same box and the real target was the smallest
+     of them. The whole tile is now what he taps, which only stays true if
+     nothing else tappable lives inside it: a stepper in there would mean a tap
+     near "+" does nothing when he meant to start the game. */
+  const tile = $("#card-pattern");
+  check(tile && tile.tagName === "BUTTON", "a home card is itself the button that starts the game");
+  check(tile && tile.querySelectorAll("button").length === 0,
+    "with nothing else tappable inside it, so every part of the tile starts the game");
+  const cell = tile && tile.closest(".cardcell");
+  check(!!cell && !!cell.querySelector(".lvrow") && !tile.querySelector(".lvrow"),
+    "the parent's level control sits beside the tile, not inside it");
+  /* A soft colour per game, because nine white boxes differing only by emoji is
+     the weakest identifier there is for someone who can't read the names.
+     Checked as "mostly distinct" rather than "all nine present": an activity
+     added without a line in CARD_TINTS falls back to a plain tile and works,
+     which is what keeps adding one to the three one-line changes CLAUDE.md
+     promises. What this catches is the tints being dropped or collapsed. */
+  const cards = Array.from(doc.querySelectorAll(".card"));
+  const tints = new Set(cards.map((c) => c.style.getPropertyValue("--tint")).filter(Boolean));
+  check(tints.size >= cards.length - 1,
+    `the games are told apart by colour, not just by name (${tints.size} distinct tints across ${cards.length} cards)`);
+
   // ---- a launch picks up two below his best, not where he left off ----
   check($("#lv-pattern").textContent.includes("Level 10/"),
     "Patterns starts two below its best of 12, not at the 12 he was mid-climb on");
