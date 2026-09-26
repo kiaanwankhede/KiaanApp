@@ -287,12 +287,17 @@ no room for them to be anything but cruel. Grids stay wide rather than square
 once words get long, which also makes the longest words across-only for free:
 down is offered only where the word actually fits down the grid.
 
-**Word find's reward is the word he just found, every round.** Every other
-graded activity rewards after a block (`S.rewardEvery`); this one sets
-`rewardEveryRound` in the contract and gets a target of exactly 1, because here
-the reward screen IS the content — the photograph and spelling it shows are the
-thing being taught, so waiting five rounds would put the picture up long after
-he had forgotten which word earned it. The activity calls `pinReward(word)`
+**Both word games reward the word he just did, every round.** Every other
+graded activity rewards after a block (`S.rewardEvery`); these two set
+`rewardEveryRound` in the contract and get a target of exactly 1, for reasons
+that are related but not the same. In **Word find** the reward screen IS the
+content: the word is a mystery made of letters until he sweeps it, and the
+photograph is the reveal. In **Finish the word** the small picture above the
+gap is the *question*, and far too incidental to be an answer to anything —
+without a reward on the round he earned it, spelling BUS ended with a green
+letter and then the next round, and nothing ever said "yes, that was a bus".
+Either way, waiting a block would put the picture up long after he had
+forgotten which word earned it. The activity calls `pinReward(word)`
 before it solves, so the picture is of what he found rather than a stranger
 from the shuffle bag. It is still an ordinary ladder otherwise: stepper,
 mastery and Settings all behave exactly as everywhere else.

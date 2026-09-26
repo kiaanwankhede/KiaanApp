@@ -164,11 +164,14 @@ function wfillRender(api, level){
         slot.innerHTML = "";
         slot.appendChild(itemNode({k:"text", text:ch, color:"var(--good)"}, px));
         opts.querySelectorAll(".opt").forEach(o=>o.classList.add("gone"));
-        /* The reward becomes the word he just spelled, so the picture and the
-           whole spelling come back together while he still knows which word
-           earned it. On the ordinary block schedule, not every round: the
-           picture has been on screen all along here, so there is no reveal
-           waiting to be spoiled the way there is in Word find. */
+        /* Finishing the word shows him the thing. The small picture above the
+           gap is the QUESTION — which word is this — and it is too small and
+           too incidental to be the answer to anything; without this, spelling
+           BUS ended with a green letter and then the next round, and nothing
+           ever said "yes, that was a bus". pinReward makes the reward the word
+           he just spelled rather than a stranger from the bag, and
+           rewardEveryRound below brings it up on this round instead of three
+           rounds later, when he would no longer know which word earned it. */
         pinReward(r.word);
         api.solved(r.vowel ? "vowel" : "consonant");
       } else {
@@ -191,6 +194,10 @@ const WORDFILL = {
   id: "wordfill",
   name: "FINISH THE WORD",
   icon: "🔠✏️",
+  /* See pinReward() above: the payoff for finishing a word is being shown the
+     thing it names, big, with the whole spelling — so the reward is due on the
+     round he earned it, not after a block of them. */
+  rewardEveryRound: true,
   maxLevel: ()=> WFILL_LEVELS.length,
   levelLabel: (level)=>{
     const p = wfillPlan(level);
@@ -204,7 +211,8 @@ const WORDFILL = {
            "right one in from " + p.step.opts + " choices (" + p.len + "-letter words, " +
            wordsOfLength(p.len).length + " of them). The gap moves first letter, then last, then " +
            "middle — the order children pick sounds up in. The wrong choices are always the same " +
-           "kind as the right one, vowels against a vowel, so \"pick the only vowel\" never answers it.";
+           "kind as the right one, vowels against a vowel, so \"pick the only vowel\" never answers it. " +
+           "Finishing a word shows him a big photograph of the thing and its whole spelling.";
   },
 
   startRound(level, api){ wfillRender(api, level); }

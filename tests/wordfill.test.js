@@ -156,9 +156,21 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   check(doc.querySelectorAll("#stage .options .opt.dim").length >= 1,
     "after a couple of tries the wrong letters dim, the same help every other game gives");
 
+  check(doc.querySelectorAll("#tokens .tok").length === 1,
+    "one token, not three — finishing a word is what earns the picture, so it is due on this round");
+
   dropOn(right, slot);
   check(slot.dataset.full === "1", "the right letter fills the gap");
   check(doc.querySelectorAll("#tokens .tok.full").length === 1, "and the round counts");
+
+  /* The payoff: finishing the word shows him the thing it names. The small
+     picture above the gap is the question; this is the answer. */
+  const word = candidate(right._item.text);
+  await sleep(900);                    // showReward is 500ms behind the solve
+  check($("#reward").classList.contains("on"), "finishing the word brings up the object he just spelled");
+  check(Array.from(doc.querySelectorAll("#rwWord span")).map((x) => x.textContent).join("") === word,
+    `and it is that word, not a stranger from the shuffle bag (expected ${word})`);
+  check(!!$("#rwImg img") || !!$("#rwImg .em"), "with its picture, big");
 
   R.finish(errors);
 })();
