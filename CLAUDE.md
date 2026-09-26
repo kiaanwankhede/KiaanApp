@@ -1,8 +1,8 @@
 # Think & Sort
 
-A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Nine
+A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Ten
 activities so far — Patterns, Sorting, Order, How many, Trace, Match, Word
-find, Sky and Nine — built as
+find, Finish the word, Sky and Nine — built as
 **one offline HTML file** that runs from a tablet with no network, no install
 and no dependencies.
 
@@ -39,7 +39,8 @@ src/
   20-stimuli.js    shared visual vocabulary: colours, shapes, themes, renderers
   30-rewards.js    reward picture + spelling, shuffle bag, IndexedDB photo store;
                    pictureForWord() and pinReward(), for an activity that needs a
-                   particular word's picture rather than the next one in the bag
+                   particular word's picture rather than the next one in the bag;
+                   wordsOfLength(), the shared vocabulary both word games draw on
   photos/          153 reward photographs (.webp) + credits.json; inlined at build
   35-drag.js       pointer-events drag and drop
   36-trace-engine.js  shared "follow the line" engine: traceTracker (the judge, DOM-free
@@ -58,6 +59,8 @@ src/
     wordfind.js    "find the word" — a word's letters, the same letters hidden in a grid,
                    the photo of what it says as the reward for finding them; works through
                    the whole saved vocabulary, 38 levels in 9 stages
+    wordfill.js    "finish the word" — a photo and its word with one letter missing (C _ T),
+                   drag the right letter in from a few choices; 30 levels in 6 stages
     sky.js         "follow the line" again, dressed as reaching a real thing — three rays,
                    three raindrops, three kite strings, three flight paths, one fixed game
     nine.js        "fill all nine" — bees into hives, ladybirds onto leaves, Sorting's
@@ -293,6 +296,40 @@ he had forgotten which word earned it. The activity calls `pinReward(word)`
 before it solves, so the picture is of what he found rather than a stranger
 from the shuffle bag. It is still an ordinary ladder otherwise: stepper,
 mastery and Settings all behave exactly as everywhere else.
+
+**Finish the word shows the photograph, and that is not a contradiction.**
+Word find deliberately holds the picture back, because there the whole word's
+letters are on screen and a picture above them gives away its own reveal. Here
+the opposite holds: `C _ T` with no picture could be CAT or COT or CUT, and a
+4-year-old has no way to know which was meant. The picture is not a spoiler in
+this game, it **is** the question — the only thing that says which word he is
+finishing. Never take it away to make this harder; that doesn't make it harder,
+it makes it arbitrary. The two rules point opposite ways because the two games
+put a different thing on screen, not because one of them is wrong.
+
+It is also the step up from Word find: that one is matching letters he can see,
+this one is recalling one he can't. Both draw on the same vocabulary through
+`wordsOfLength()` in src/30-rewards.js — one list, so the two can't drift apart
+on what counts as a word.
+
+**The gap moves first letter, then last, then middle.** That is the order
+children pick sounds up in — initial sound, final sound, and the medial vowel
+last, which is also the one that stays hard — and it is the same reasoning as
+Trace running its strokes in the order handwriting actually develops. Don't
+"simplify" it into always blanking the middle because the `C_T` example looks
+neat: the middle is the end of the ladder, not the start of it. Word length is
+the stage; inside a stage the gap moves through those three positions and then
+the number of choices grows.
+
+**Its two guards.** The wrong letters are **always the same kind as the right
+one** — vowels against a vowel, consonants against a consonant. Mixed, "pick
+the only vowel on screen" would answer every medial-vowel round without knowing
+the word at all, which is exactly what **Guard against latching** is about. And
+a wrong letter may never turn the word into **another word this app teaches**:
+a gap with two defensible answers where only one is accepted is a round he
+loses for being right. `tests/wordfill.test.js` checks both over every word at
+every level — and the second guard is what lets that test read the answer
+straight off the page, since exactly one choice can complete a real word.
 
 **Sky is Trace's engine wearing different art, on purpose, and it stops there.**
 A commercial tracing app teaching this identical skill — a line from one thing

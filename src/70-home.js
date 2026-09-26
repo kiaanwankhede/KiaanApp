@@ -44,6 +44,7 @@ const CARD_TINTS = {
   trace:    "#f1edfb",     // lavender
   match:    "#fdeef1",     // rose
   wordfind: "#e7f3f6",     // teal
+  wordfill: "#eceafa",     // periwinkle
   sky:      "#fdf4e4",     // sand
   nine:     "#eff6ea"      // leaf
 };

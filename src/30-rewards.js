@@ -155,6 +155,21 @@ function pictureForWord(word){
   return pair ? pictureFor(pair) : null;
 }
 
+/* The words of a given length that can actually be shown with a picture —
+   shared vocabulary, so the two word games draw from one list rather than each
+   keeping its own idea of what counts. Single words only: a space cannot be a
+   cell to drag through or a letter to fill in, and teaching ICECREAM under a
+   target that reads ICE CREAM would teach the wrong spelling. */
+function wordsOfLength(len){
+  const out = [];
+  EMOJI_PACK.forEach(p=>{
+    const w = p[0];
+    if(w.length !== len || /[^A-Z]/.test(w)) return;
+    if(pictureForWord(w)) out.push(w);
+  });
+  return out;
+}
+
 /* shuffle bag so the same animal doesn't repeat */
 let bag = [];
 function nextAnimal(){

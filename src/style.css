@@ -235,6 +235,18 @@
      the bee theme's amber is too light to carry white text at this size. */
   .ninecount span.on{opacity:1;color:var(--ink)}
 
+  /* ---------- FINISH THE WORD ---------- */
+  /* The photograph is this game's prompt, not its reward, so it sits above the
+     word the whole round — small, because the word and its gap are the thing
+     being worked on. */
+  .wfillshot{
+    width:clamp(64px,13vh,110px);aspect-ratio:1/1;border-radius:16px;overflow:hidden;
+    background:var(--card);box-shadow:var(--shadow);display:grid;place-items:center;
+  }
+  .wfillshot img{width:100%;height:100%;object-fit:cover}
+  .wfillshot .em{font-size:clamp(36px,9vh,72px);line-height:1}
+  .wfillword{gap:clamp(4px,1.2vw,10px)}
+
   /* ---------- WORD FIND ---------- */
   /* The target is the letters to match, and nothing else — no photograph here,
      because that is what finding them earns. Bigger than the grid's own
