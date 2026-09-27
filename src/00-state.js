@@ -12,7 +12,7 @@ const KEY = "lr_state_v1";
    Without this, changing a default here would do nothing on the tablet: save()
    writes every key of S, so an old save already carries the old value and
    Object.assign below would keep winning with it. */
-const SETTINGS_REV = 2;
+const SETTINGS_REV = 3;
 const DEFAULTS = {
   rev: SETTINGS_REV,
   rewardEvery: 3,
@@ -24,7 +24,10 @@ const DEFAULTS = {
   neverDemote: true,          // a rough block resets the count toward the next level up rather than dropping him
   useEmojiPack: true,
   assistedMode: true,
-  gate: "135",
+  /* Long, and not a run of neighbouring keys. Three digits is short enough for
+     a 4-year-old to land on by pressing things, and the one screen behind this
+     gate is the one that can undo his levels and turn parent mode on. */
+  gate: "1112233",
   levels: {},                 // { <activityId>: level }
   enabled: {}                 // { <activityId>: false }  — absent means on
 };
@@ -51,6 +54,10 @@ function load(){
     // save that still holds the old default, so a block size a parent chose
     // themselves is never overwritten.
     if(!(o.rev >= 2) && o.itemsPerSession === 10) S.itemsPerSession = 5;
+    // rev 2 -> 3: the passcode went from three digits to seven. Only move a
+    // save that still holds the old default — a code a parent chose for
+    // themselves is theirs, and silently changing it would lock them out.
+    if(!(o.rev >= 3) && o.gate === "135") S.gate = DEFAULTS.gate;
   }
   S.rev = SETTINGS_REV;
   // Which level he was on mid-climb doesn't carry over; where he STARTS is

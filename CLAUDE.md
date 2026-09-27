@@ -748,6 +748,23 @@ default here does nothing on its own for a tablet that already has a save:
 when the saved value is still the old default, so a parent's own choice is
 never overwritten.
 
+**The settings passcode ships long, and the same migration rule applies.** It
+was three digits, which a 4-year-old pressing things can land on, and the one
+screen behind it is the screen that can change his levels and turn parent mode
+on. Seven digits now. A tablet still carrying the old default is moved on once
+(rev 2 → 3); a code a parent set themselves is never touched, because silently
+replacing that locks them out of their own tablet, and there is no recovery
+from a forgotten code but clearing the app's data — which takes his progress
+with it.
+
+`tests/launch.test.js` reads the shipped default out of the source rather than
+repeating it, so it checks what the passcode must BE — long enough, migrated
+once, never clobbered — rather than which digits it is today. One of its checks
+is there specifically to make the **rev bump** load-bearing: a parent who
+deliberately sets the code back to `135` after the move must keep it, which
+only holds while the save is stamped at the current rev. Without that check,
+forgetting to bump `SETTINGS_REV` passed every other test.
+
 **The reward screen shows photographs; the activities draw with emoji.** These
 are two different jobs and they want two different pictures. An activity needs
 shapes that fill their boxes evenly and differ on exactly the attribute being

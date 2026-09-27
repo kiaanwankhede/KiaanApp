@@ -212,11 +212,15 @@ async function openSettings(){
   /* code */
   const g6 = group("Passcode");
   const codeRow = el("div","row");
-  const codeIn = el("input"); codeIn.type="tel"; codeIn.value = S.gate; codeIn.maxLength = 6;
-  codeIn.style.cssText = "width:110px;padding:9px;border:1px solid var(--line);border-radius:10px;font-size:17px;text-align:center";
+  const codeIn = el("input"); codeIn.type="tel"; codeIn.value = S.gate; codeIn.maxLength = 12;
+  codeIn.style.cssText = "width:150px;padding:9px;border:1px solid var(--line);border-radius:10px;font-size:17px;text-align:center";
   codeIn.addEventListener("change", ()=>{ const v = codeIn.value.replace(/\D/g,""); if(v.length>=3){ S.gate = v; save(); } else codeIn.value = S.gate; });
   codeRow.append(el("label",null,"Settings passcode"), codeIn);
-  codeRow.appendChild(el("div","hint","Long-press the ⚙️ on the home screen for 1 second to get here."));
+  codeRow.appendChild(el("div","hint",
+    "Long-press the ⚙️ on the home screen for 1 second to get here. Three digits or more, and worth keeping " +
+    "long: this is the only thing between him and the screen that can change his levels or turn parent mode " +
+    "on. There is no way to recover a forgotten code except clearing the app's data, which takes his progress " +
+    "with it — use Export data above first if you are changing it."));
   g6.appendChild(codeRow);
   b.appendChild(g6);
 
