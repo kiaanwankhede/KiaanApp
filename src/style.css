@@ -297,6 +297,28 @@
   /* the guide silhouette is a size cue, not a piece — no card, no shadow */
   .slot .ghost{background:none;box-shadow:none;opacity:.5}
 
+  /* ---------- SHAPE FIT ---------- */
+  /* The hole is a drop zone laid over the shape at the hole's own place, so a
+     piece goes INTO the hole rather than into a slot beside it. Each gap div is
+     positioned by its outline's bounding box in per-cent of the board, and
+     carries an SVG with that same box as its viewBox — so the dashed outline
+     lands exactly where the shape is missing, whatever shape it is. */
+  .fitboard{
+    position:relative;width:clamp(180px,42vw,272px);aspect-ratio:1;flex:none;
+    background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
+  }
+  .fitboard > svg{position:absolute;inset:0;width:100%;height:100%}
+  .fitshape{fill:#e9eff8;stroke:#aabdd7;stroke-width:2.2;stroke-linejoin:round}
+  .fitgap{position:absolute;transition:transform .15s ease}
+  .fitgap svg{display:block;width:100%;height:100%;overflow:visible}
+  .fitslot{
+    fill:rgba(255,255,255,.6);stroke:var(--slot);stroke-width:2.2;
+    stroke-dasharray:5 4;stroke-linejoin:round;
+  }
+  .fitgap.near{transform:scale(1.07)}
+  .fitgap.near .fitslot{stroke:var(--accent);stroke-width:3}
+  .fitgap.done .fitslot{stroke-dasharray:none}
+
   /* ---------- TRACE ---------- */
   .trace-board{display:block;width:min(94vw, calc((100vh - 170px) * 1.6));aspect-ratio:160/100;
     background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);touch-action:none}

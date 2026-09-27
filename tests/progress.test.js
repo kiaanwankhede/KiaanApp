@@ -132,6 +132,17 @@ const SOLVE = {
   wordfill(win) { return SOLVE.pattern(win); }, // same shape again: one gap, letters to pick from
   odd(win) { return SOLVE.pattern(win); },      // and again: one space, things to pick from
   where(win) { return SOLVE.pattern(win); },    // and again
+  fit(win) {
+    // same idea, but the holes are drop zones laid over the board rather than a
+    // slot beside it, and a round can have two of them
+    const d = win.document;
+    const zones = Array.from(d.querySelectorAll("#stage .fitgap.dropzone")).filter((z) => z.dataset.full !== "1");
+    const opts = Array.from(d.querySelectorAll("#stage .options .opt:not(.gone) .tile"));
+    if (!zones.length || !opts.length) return null;
+    const right = opts.find((t) => t._item.fits);
+    const wrong = opts.find((t) => !t._item.fits);
+    return { right: right && [right, zones[0]], wrong: wrong && [wrong, zones[0]] };
+  },
   nine(win) {
     const d = win.document;
     const opts = Array.from(d.querySelectorAll("#stage .tray .opt .tile"));
@@ -266,7 +277,7 @@ const ONE_SHOT = new Set(["sky", "nine"]);
 
 (async () => {
   const allKinds = registeredActivities().map((c) =>
-    ({ PATTERNS: "pattern", SORTING: "sort", SERIATION: "seriate", COUNTING: "count", TRACING: "trace", MATCHING: "match", ODD: "odd", WHERE: "where", WORDFIND: "wordfind", WORDFILL: "wordfill", SKY: "sky", NINE: "nine" }[c]));
+    ({ PATTERNS: "pattern", SORTING: "sort", SERIATION: "seriate", COUNTING: "count", TRACING: "trace", MATCHING: "match", ODD: "odd", WHERE: "where", FIT: "fit", WORDFIND: "wordfind", WORDFILL: "wordfill", SKY: "sky", NINE: "nine" }[c]));
   check(allKinds.every(Boolean), "every registered activity has a solver here");
   const kinds = allKinds.filter((k) => !ONE_SHOT.has(k));
   const allErrors = [];

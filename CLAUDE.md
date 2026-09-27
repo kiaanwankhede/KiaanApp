@@ -1,8 +1,8 @@
 # Think & Sort
 
-A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Twelve
+A reward-based logical-reasoning practice app for Kiaan, a 4-year-old. Thirteen
 activities so far — Patterns, Sorting, Order, How many, Trace, Match, Odd one
-out, Where is it?, Word find, Finish the word, Sky and Nine — built as
+out, Where is it?, Shape fit, Word find, Finish the word, Sky and Nine — built as
 **one offline HTML file** that runs from a tablet with no network, no install
 and no dependencies.
 
@@ -59,6 +59,8 @@ src/
     where.js       "find the same one" — a thing in, on, under or beside a box, and
                    the same arrangement to pick out below; no word ever names a
                    position, 15 levels
+    fit.js         "which piece fits?" — a shape with a bite out of it and the pieces
+                   to fill it; shape, then size, then turned, then two at once, 25 levels
     odd.js         "which one is different?" — three share something, one doesn't, and
                    nothing says what; 21 levels sorted by load
     wordfind.js    "find the word" — a word's letters, the same letters hidden in a grid,
@@ -178,6 +180,67 @@ but the relation itself: a ball on a box above, a star and a bowl below. That
 is the difference between recognising a picture and holding "on-ness" apart
 from whatever happens to be on whatever. The picture-matching levels are the
 ramp, not the game — don't flatten the ladder back onto them.
+
+**Shape fit is the spatial strand, and its ladder is long on purpose.** Where
+is it? is about the relation between two things; this is about the form of one
+— holding a shape in mind and comparing it with another, which nothing else
+here asks for. Spatial skill is among the better predictors of later maths and
+science, and unusually among the things people try to train, practice at it
+carries over to spatial tasks it was never practised on.
+
+The concept runs a long way — size, rotation, composition, mirror symmetry —
+and the temptation is to get there in eight levels. There are 25, because he is
+four. Each one changes one thing, and the two ideas that ask the most, a mirror
+image and a hole that takes two pieces, never appear in the easier half.
+`tests/fit.test.js` fails if either creeps down the ladder, so "it could be
+tightened up" can't quietly happen later.
+
+**Its supports are structural rather than encouragement.** The hole is always
+drawn as the dashed outline of the exact piece that fills it, so nothing is
+ever held in memory — the same support Order gives by leaving four of five
+stairs standing, and the opposite of what Word find would be if its letters
+came off the screen. The hole is a drop zone the size of the hole, so nothing
+needs aiming. And he never turns a piece with his fingers: from the turn levels
+on, the right piece is *drawn* lying at another angle and drops in the right
+way up on its own. Judging which piece is the thinking; steering it into place
+would make this a motor task, and that is Trace's job.
+
+**Exactly one piece fits, and nothing else singles it out.** Every piece in a
+round is one colour, and — except at the levels where size IS the question —
+the same area, so "the blue one" and "the big one" both answer nothing. The
+other half is that no wrong piece may fit either: a round with two defensible
+answers and one accepted is a round he loses for being right, the same failure
+Finish the word avoids by refusing a decoy letter that spells another real
+word. `fitSameShape()` decides it the way the game does — congruent by
+ROTATION, since rotation is the only thing the game applies.
+
+That test is also why a mirror image is a fair decoy and not a trick: it is
+genuinely a different piece, and no amount of turning makes it fit. Getting
+that right needed `fitWound()`, and the bug it fixes is worth keeping in mind
+for any shape work here — **mirroring a polygon turns it inside out without
+moving any of its edges**, so comparing edge lengths in stored order says a
+triangle and its mirror are the same piece. Winding every shape the same way
+round first is what makes the comparison see the difference; without it the
+mirror levels quietly shipped two right answers and one accepted. A mirror is
+only ever offered where the piece's mirror really differs (`flip` on the cut),
+and the tests check that flag against the geometry rather than trusting it.
+
+**And at a turn level every piece lies at an angle, not just the right one.**
+Leave a wrong piece of the same family sitting square-on and "the one that
+isn't lined up with the hole" points at the answer with no shape compared. The
+angle also has to be one that shows: a rectangle turned half way round lands
+back on itself, which is not a turn at all, so `fitSpin()` picks an angle that
+visibly changes the piece and settles for any of them only on a shape like a
+disc, where none of them do.
+
+**Its wrong pieces are dealt, not rolled.** Each decoy kind draws from a fixed
+set — four scale factors, eight stretches, five other shapes — and takes the
+first ones that aren't the right piece and aren't each other. No random draw
+and re-roll, so there is no loop to run out and no silent fallback of the kind
+**How many** warns about; a square piece has fewer distinct stretches than the
+list suggests (the two ways round are the same rectangle), which is why the
+list is longer than the most any level asks for, and why a test checks that
+every kind can still produce three for every hole.
 
 **Ladders are ordered by real difficulty, not by structure.** Both activities
 score every level with an explicit load (how much the structure taxes working
