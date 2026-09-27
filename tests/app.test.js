@@ -8,7 +8,9 @@ const { window, errors, spies } = bootApp({
   // a previous sitting that had climbed to pattern 12 / sort 4, and a best of
   // 12 / 4 recorded by auto-advance along the way
   localStorage: {
-    settings: { levels: { pattern: 12, sort: 4 }, autoAdvance: true, itemsPerSession: 10 },
+    // a passcode that was never a shipped default, so this tests the gate itself
+    // rather than whatever the default happens to be, and no migration touches it
+    settings: { levels: { pattern: 12, sort: 4 }, autoAdvance: true, itemsPerSession: 10, gate: "246" },
     progress: {
       sessions: [], perLevel: { "pattern:12": { n: 9, indep: 9, hits: 1 } },
       best: { pattern: 12, sort: 4 },
@@ -116,7 +118,7 @@ setTimeout(() => {
   // ---- parent gate ----
   $("#gear").dispatchEvent(new window.Event("pointerdown", { bubbles: true }));
   setTimeout(() => {
-    ["1", "3", "5"].forEach((d) =>
+    ["2", "4", "6"].forEach((d) =>
       click(Array.from(doc.querySelectorAll("#gateKeys button")).find((b) => b.textContent === d)));
     setTimeout(() => {
       check($("#settings").classList.contains("on"), "the settings panel opens after the passcode");

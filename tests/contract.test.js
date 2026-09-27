@@ -64,7 +64,7 @@ try {
   fs.unlinkSync(tmp);
 }
 
-const { window, errors } = bootApp({ html });
+const { window, errors } = bootApp({ html, localStorage: { settings: { gate: "246" } } });
 const doc = window.document;
 const $ = (s) => doc.querySelector(s);
 const click = (el) => el.dispatchEvent(new window.Event("click", { bubbles: true }));
@@ -100,7 +100,7 @@ setTimeout(() => {
   click($("#back"));
   $("#gear").dispatchEvent(new window.Event("pointerdown", { bubbles: true }));
   setTimeout(() => {
-    ["1", "3", "5"].forEach((d) =>
+    ["2", "4", "6"].forEach((d) =>
       click(Array.from(doc.querySelectorAll("#gateKeys button")).find((b) => b.textContent === d)));
     setTimeout(() => {
       const body = $("#setBody").textContent;
