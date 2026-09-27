@@ -41,7 +41,7 @@ check(html !== base, "the test hook spliced into the built page");
    a traced line, bins) belongs in OFF. One-shot games need no entry: Mix
    excludes them itself. */
 const ON = ["pattern", "count", "match", "odd", "where", "wordfill"];
-const OFF = ["sort", "seriate", "trace", "wordfind"];
+const OFF = ["sort", "seriate", "trace", "wordfind", "fit"];
 const enabled = {};
 OFF.forEach((id) => { enabled[id] = false; });
 

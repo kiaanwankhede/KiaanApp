@@ -46,6 +46,7 @@ const ACTIVITY_FILES = [
   "activities/match.js",
   "activities/odd.js",
   "activities/where.js",
+  "activities/fit.js",
   "activities/wordfind.js",
   "activities/wordfill.js",
   "activities/sky.js",
