@@ -751,7 +751,7 @@ never overwritten.
 **The settings passcode ships long, and the same migration rule applies.** It
 was three digits, which a 4-year-old pressing things can land on, and the one
 screen behind it is the screen that can change his levels and turn parent mode
-on. Seven digits now. A tablet still carrying the old default is moved on once
+on. Six digits now. A tablet still carrying the old default is moved on once
 (rev 2 → 3); a code a parent set themselves is never touched, because silently
 replacing that locks them out of their own tablet, and there is no recovery
 from a forgotten code but clearing the app's data — which takes his progress
