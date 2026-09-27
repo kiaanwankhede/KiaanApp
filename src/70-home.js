@@ -177,8 +177,18 @@ function renderHomeAssist(){
   const c = $("#assistToggleHome"); c.innerHTML = "";
   c.appendChild(toggle(S.assistedMode, v=>{ S.assistedMode = v; save(); }));
 }
+/* Child mode is his screen: the level strips under the tiles are the parent's
+   control, and in child mode they are not on it at all — the only thing to tap
+   is the game itself. They are hidden by CSS rather than left out of the card,
+   so switching mode is one class and never rebuilds a grid he has learned. */
+function applyMode(){
+  document.body.classList.toggle("parentmode", sandboxOn());
+}
+$("#parentBanner").addEventListener("click", ()=>{ endSandbox(); applyMode(); updateHomeLabels(); });
+
 function goHome(){
   sess = null;
+  applyMode();
   updateHomeLabels();
   renderHomeAssist();
   show("#home");

@@ -33,6 +33,19 @@ async function openSettings(){
   await loadCustom();
   const b = $("#setBody"); b.innerHTML="";
 
+  /* mode — first, because it changes what the other settings are FOR */
+  const g0 = group("Mode");
+  g0.appendChild(row("Parent mode", toggle(sandboxOn(), v=>{
+    if(v) startSandbox(); else endSandbox();
+    applyMode(); updateHomeLabels();
+  }),
+    "Off is his screen: the level steppers under each tile are hidden, so the only thing to tap is the game " +
+    "itself, and everything he does counts. On shows the steppers and lets you try the games yourself without " +
+    "any of it reaching his record \u2014 the levels, the blocks behind them, the breakdowns and the session log " +
+    "all go back to exactly how they were the moment you turn it off. It never survives closing the app, so the " +
+    "tablet always opens on his screen."));
+  b.appendChild(g0);
+
   /* rewards */
   const g1 = group("Rewards");
   g1.appendChild(row("Reward after", stepper(S.rewardEvery,1,10,v=>{S.rewardEvery=v;save();}), "How many correct answers earn one animal."));
@@ -189,7 +202,7 @@ async function openSettings(){
   let armed = false;
   clrBtn.addEventListener("click", ()=>{
     if(!armed){ armed = true; clrBtn.textContent = "Tap again to reset"; setTimeout(()=>{armed=false;clrBtn.textContent="Reset progress";},3000); return; }
-    progress = {sessions:[], perLevel:{}, tagStats:{}, best:{}}; save(); openSettings();
+    resetProgress(); openSettings();
   });
   expRow.append(expBtn, clrBtn);
   g5.appendChild(expRow);

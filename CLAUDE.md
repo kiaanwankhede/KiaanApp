@@ -703,6 +703,44 @@ game is under 60%, says "stuck on level N — worth stepping down". It stays a
 warning and never touches the stepper: that is the parent's, everywhere in this
 app.
 
+**Child mode is the default, and parent mode is a sandbox.** His screen carries
+only what he is meant to touch, so in child mode the level strips under the
+tiles — fourteen little buttons an inch under the fourteen he IS meant to press
+— are not on it at all. They are hidden by CSS rather than left out of the
+card, so switching modes never rebuilds a grid he has learned.
+
+Parent mode exists so a parent can try the games, and that is exactly why it
+has to record nothing. A real round writes four things about him: the block
+counters, the level the game sits on, the tag breakdowns and the sitting log.
+The quiet one is **`best`** — pass a block at level 20 while testing and every
+launch afterwards starts him two below THAT, so the next morning he opens a
+game far past anything he has done, gets nothing right, and nothing looks
+broken.
+
+So it **guards the door, not each writer**: `save()` is the only thing that
+reaches storage, so gating it covers every writer there is, including the ones
+a future activity adds. Checks inside `evaluateMastery()`, `logTagStat()` and
+the session log would work today and leak the first time progress is written
+from somewhere nobody thought to guard — which is how the deferred-callback
+bugs got in before `sessionGuard()` put them all behind one question.
+
+Both halves are load-bearing. The `save()` gate keeps storage clean if the
+tablet is simply closed mid-test; the snapshot restores what the testing
+changed in **memory**, so a game stepped to level 20 snaps back rather than
+being handed over along with the tablet. `tests/parentmode.test.js` plays the
+same block twice — once in each mode — and fails if either half is taken out,
+or if the same rounds stop counting in child mode.
+
+Two details are deliberate. Parent mode is a `let`, never a key of `S`, so it
+**cannot survive a relaunch**: if it could, the tablet might open in it one
+morning and record none of his session, the very failure it exists to prevent,
+inverted. And a banner sits on the home screen while it is on, saying so and
+serving as the way out — leaving it on and handing the tablet over would cost a
+whole sitting, so the state has to be visible every time a game is chosen.
+Clearing his record is the one progress write that really is the parent's, so
+`resetProgress()` writes through the gate and becomes the sandbox's new
+baseline.
+
 **A confirmation block is 5 answers, not 10** (`itemsPerSession`). Changing a
 default here does nothing on its own for a tablet that already has a save:
 `save()` writes every key of `S`, so the old value keeps winning. That's what
