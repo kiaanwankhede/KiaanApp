@@ -12,8 +12,6 @@ const COLOR_WORDS = { red:"RED", yellow:"YELLOW", green:"GREEN", blue:"BLUE", pu
 const SHAPES = ["circle","square","triangle","star"];
 const SHAPE_WORDS = { circle:"CIRCLE", square:"SQUARE", triangle:"TRIANGLE", star:"STAR" };
 
-const FOOD = ["🍎","🍌","🍇","🍓","🥕","🍕","🍞","🧀"];
-const GO   = ["🚗","🚌","🚲","🚂","🚕","🚚","✈️","🚁"];
 
 const THEMES = {
   animals:    ["🐶","🐱","🐰","🐵","🐸","🐷","🦁","🐻"],

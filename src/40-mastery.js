@@ -107,6 +107,53 @@ function activityStats(){
   }).sort((a, b)=> (b.atLevel - a.atLevel) || (b.behind - a.behind));
 }
 
+/* ---- movement, not just standing totals -------------------------------------
+   activityStats() above answers "where is he". These two answer "is that
+   changing", which is the question a parent is actually asking and the one
+   thing neither the standing picture nor the session log can show: the log is
+   one row per sitting and you cannot see a fortnight's shape in it by eye.
+
+   Both read the session log, which is the only record that carries a date, and
+   both are free of the DOM so they can be tested directly. */
+const DAY_MS = 86400000;
+
+/* Two equal windows back to back — the last `days` against the `days` before
+   them — so every number comes with what it was doing before. */
+function recentWindow(days){
+  const span = days * DAY_MS, now = Date.now();
+  const bucket = ()=> ({ sittings:0, rounds:0, clean:0, secs:0 });
+  const out = { now: bucket(), prev: bucket(), days };
+  (progress.sessions || []).forEach(s=>{
+    const age = now - Date.parse(s.at);
+    if(!(age >= 0)) return;                       // a clock that has gone backwards
+    const b = age < span ? out.now : (age < span * 2 ? out.prev : null);
+    if(!b) return;
+    b.sittings++;
+    b.rounds += s.correct || 0;
+    b.clean  += s.firstTry || 0;
+    b.secs   += s.secs || 0;
+  });
+  return out;
+}
+
+/* One game's movement: the level it was played at first and last inside the
+   window, and how long since it was touched at all. `idleDays` deliberately
+   looks past the window — "not played for three weeks" is the most useful
+   thing this can say about a game, and a window would hide it. */
+function gameMovement(id, days){
+  const cut = Date.now() - days * DAY_MS;
+  const mine = (progress.sessions || []).filter(s => s.kind === id && s.level);
+  if(!mine.length) return null;
+  const last = mine[mine.length - 1];
+  const inWindow = mine.filter(s => Date.parse(s.at) >= cut);
+  return {
+    sittings: inWindow.length,
+    from: inWindow.length ? inWindow[0].level : null,
+    to:   inWindow.length ? inWindow[inWindow.length - 1].level : null,
+    idleDays: Math.max(0, Math.floor((Date.now() - Date.parse(last.at)) / DAY_MS))
+  };
+}
+
 /* Optional per-round tagging. An activity passes a tag to api.solved() when a
    round belongs to a sub-category worth tracking separately — Patterns uses it
    for which real-object theme came up — and Settings surfaces the breakdown. */
