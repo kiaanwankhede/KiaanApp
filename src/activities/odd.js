@@ -192,7 +192,13 @@ const ODD = {
               if(j !== r.oddAt) o.classList.add("dim");
             });
           }
-          if(attempts >= S.showAfter) slot.classList.add("near");
+          // CLAUDE.md's rule, the same in every game: after S.showAfter the
+          // RIGHT ONE is highlighted. Marking the empty space instead says
+          // nothing he doesn't know — he can see the gap; what he is stuck on
+          // is which of these goes in it. And `.near` is the drag engine's
+          // own "your finger is over this zone", so borrowing it made the
+          // strongest help the app offers look like a hover.
+          if(attempts >= S.showAfter && answerNode) answerNode.parentNode.classList.add("pick");
         }
       });
       opts.appendChild(wrap);

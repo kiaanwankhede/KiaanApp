@@ -741,6 +741,45 @@ Clearing his record is the one progress write that really is the parent's, so
 `resetProgress()` writes through the gate and becomes the sandbox's new
 baseline.
 
+**The escalation is the same in every game, and that is checked in one place.**
+CLAUDE.md has always stated it once for all of them — wrong options dim after
+`S.dimAfter`, **the right one is highlighted** after `S.showAfter` — and
+nothing tested it, so four of the seven slot-and-options games had drifted into
+highlighting the empty SLOT instead. That tells him nothing he doesn't know: he
+can see the gap; what he is stuck on is which piece goes in it. It also
+borrowed `.near`, the class the drag engine puts on whichever zone a finger is
+over, so the strongest help the app offers looked exactly like "you are
+hovering here". `tests/help.test.js` now drives every one of those games
+through dim and show, in one file, because a rule written once for seven games
+is the kind that drifts in six of them unnoticed.
+
+**A panel a parent reads has to stay bounded, whatever an activity decides to
+tag.** What a round tags with is its own business — Word find tags every word
+it has ever shown, Trace every stroke by name — and left uncapped that one loop
+put the better part of two hundred rows between a parent and everything else on
+the screen. The breakdown shows the six he does WORST at and counts the rest:
+the ones worth reading are the ones he gets wrong. Games he has never opened
+collapse to one shared line for the same reason — ten blocks each saying the
+same nothing pushed the games he is actually playing off the screen.
+
+**The Progress panel leads with movement, because that is the question.**
+`activityStats()` says where he is; `recentWindow()` and `gameMovement()` in
+40-mastery.js say whether it is changing, which is what a parent is actually
+asking and the one thing neither the standing picture nor the session log can
+show — the log is one row per sitting and a fortnight's shape is not visible in
+it by eye. Four figures for the week against the week before, then per game the
+one line worth acting on: up N levels, not played for N days, stuck, never
+opened. Absence outranks level talk — a game nobody has touched cannot be
+described as "same level this week", and saying so would hide the only fact
+about it a parent can act on.
+
+Two details in the numbers. A count moves by a share of itself, but a **share
+moves in points**: 64% against 50% is up 14 points, not "up 28%", which reads
+as a bigger jump than it is and makes a parent undo the arithmetic. And the
+meters draw the level he is actually on, not his best — a meter drawn from
+`best` would quietly flatter every game on the screen, since a launch picks up
+two below it.
+
 **A confirmation block is 5 answers, not 10** (`itemsPerSession`). Changing a
 default here does nothing on its own for a tablet that already has a save:
 `save()` writes every key of `S`, so the old value keeps winning. That's what

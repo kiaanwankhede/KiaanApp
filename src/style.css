@@ -414,6 +414,20 @@
   .minibtn{padding:9px 16px;border-radius:11px;background:#f1f5fa;font-size:14px;font-weight:bold}
   .stat{display:flex;justify-content:space-between;font-size:14px;padding:5px 0;border-bottom:1px dashed var(--line)}
   .stat:last-child{border:none}
+  /* The progress panel's trend furniture. Status colour is reserved for the
+     one line that means "look at this", and it never carries the meaning on
+     its own — the words say it too, which is also what keeps it readable to
+     anyone who can't tell the colours apart. */
+  .stat b{font-weight:700}
+  .trend{color:var(--ink-soft);font-weight:400}
+  .trend.up{color:var(--good)}
+  .trend.down{color:#b3541e}
+  .note{margin:-2px 0 4px;font-size:12px}
+  .note.warn{color:#b3541e}
+  /* One game's place on its own ladder. A single hue, no axis of its own, and
+     the number it draws is already written in the row above it. */
+  .meter{height:4px;border-radius:3px;background:var(--line);overflow:hidden;margin:0 0 5px}
+  .meter i{display:block;height:100%;background:var(--accent);opacity:.55;border-radius:3px}
   .animals{display:flex;flex-wrap:wrap;gap:8px}
   .anim{width:74px;text-align:center;font-size:11px;color:var(--ink-soft)}
   .anim .th{width:74px;height:74px;border-radius:12px;background:#f1f5fa;overflow:hidden;display:grid;place-items:center;position:relative}
