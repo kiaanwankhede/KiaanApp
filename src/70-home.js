@@ -139,11 +139,19 @@ function buildHomeCards(){
   };
 
   const { plain, sections } = groupHomeSections(ACTIVITIES);
-  cardRow(mixPool().length >= 2 ? plain.concat([MIX_CARD]) : plain);
+  /* Mix is always BUILT and hidden by the same `off` rule as everything else.
+     Built conditionally it could only be right at boot: a parent switching
+     games off until one is left would leave a mix of one on his screen, which
+     is just that game wearing a stranger's name. */
+  cardRow(plain.concat([MIX_CARD]));
   sections.forEach(sec=>{
-    wrap.appendChild(el("div","section-heading", sec.name));
+    const head = el("div","section-heading", sec.name);
+    head._acts = sec.dates.reduce((all, grp)=> all.concat(grp.acts), []);
+    wrap.appendChild(head);
     sec.dates.forEach(grp=>{
-      wrap.appendChild(el("div","date-heading", formatSectionDate(grp.date)));
+      const dh = el("div","date-heading", formatSectionDate(grp.date));
+      dh._acts = grp.acts;
+      wrap.appendChild(dh);
       cardRow(grp.acts);
     });
   });
@@ -160,6 +168,14 @@ function changeLevel(id, dir){
 }
 function updateHomeLabels(){
   ACTIVITIES.forEach(act=>{
+    /* A game switched off in Settings is GONE from his screen in child mode,
+       not greyed: a grey tile is still a thing to press that then does
+       nothing, which is worse than no tile at all for someone who can't read
+       why. It stays visible (and greyed) in parent mode, so whoever set it can
+       see what they turned off. Hidden by CSS on the cell rather than left out
+       of the grid, so switching mode never rebuilds it. */
+    const cell = ($("#card-" + act.id) || {}).parentNode;
+    if(cell && cell.classList && cell.classList.contains("cardcell")) cell.classList.toggle("off", !isEnabled(act.id));
     const lv = levelOf(act.id);
     const label = $("#lv-" + act.id);
     // Just the number. The "AB · Colour" blurb used to sit here too, in two
@@ -172,6 +188,18 @@ function updateHomeLabels(){
     const play = document.querySelector('.playbtn[data-kind="'+act.id+'"]');
     if(play) play.disabled = !isEnabled(act.id);
   });
+  const mixCell = ($("#card-" + MIX_ID) || {}).parentNode;
+  if(mixCell && mixCell.classList && mixCell.classList.contains("cardcell"))
+    mixCell.classList.toggle("off", mixPool().length < 2);
+  /* A heading whose games are all switched off would sit on his screen over an
+     empty space, so it carries the same `off` class its cards do and the one
+     CSS rule takes the lot away. Recomputed here rather than at build time
+     because flipping a switch in Settings doesn't rebuild the grid. */
+  Array.from(document.querySelectorAll("#homeCards .section-heading, #homeCards .date-heading"))
+    .forEach(h=>{
+      if(!h._acts) return;
+      h.classList.toggle("off", h._acts.every(a => !isEnabled(a.id)));
+    });
 }
 function renderHomeAssist(){
   const c = $("#assistToggleHome"); c.innerHTML = "";

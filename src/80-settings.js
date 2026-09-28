@@ -73,10 +73,30 @@ async function openSettings(){
 
   /* activities */
   const g3 = group("Activities");
+  /* What these switches add up to, said where the choice is made. Switched off
+     means GONE from his screen rather than greyed — the whole point is a short,
+     fixed set of tiles that is the same every morning — so the count is the
+     only place a parent can see what he will actually be handed. */
+  const onNow = ACTIVITIES.filter(a => isEnabled(a.id));
+  const tally = el("div","hint",
+    onNow.length + " of " + ACTIVITIES.length + " on his screen" +
+    (onNow.length ? "" : " — he will have nothing to tap") +
+    (mixPool().length >= 2 ? ", plus Mix" : ". Mix needs two games switched on"));
+  if(!onNow.length) tally.classList.add("note", "warn");
+  g3.appendChild(tally);
   // one pair of rows per registered activity — nothing here names an activity
   ACTIVITIES.forEach(act=>{
     const label = act.name.charAt(0) + act.name.slice(1).toLowerCase();
-    g3.appendChild(row(label, toggle(isEnabled(act.id), v=>{ setEnabled(act.id, v); save(); })));
+    g3.appendChild(row(label, toggle(isEnabled(act.id), v=>{
+      setEnabled(act.id, v); save();
+      updateHomeLabels();          // his screen changes shape, so refresh it now
+      const n = ACTIVITIES.filter(x => isEnabled(x.id)).length;
+      tally.textContent = n + " of " + ACTIVITIES.length + " on his screen" +
+        (n ? "" : " — he will have nothing to tap") +
+        (mixPool().length >= 2 ? ", plus Mix" : ". Mix needs two games switched on");
+      tally.classList.toggle("note", !n);
+      tally.classList.toggle("warn", !n);
+    })));
     // a one-shot game is one fixed game by definition, so a stepper from 1 to 1
     // would be a dead control — it gets its blurb with nothing to set
     g3.appendChild(act.oneShot

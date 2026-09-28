@@ -741,6 +741,30 @@ Clearing his record is the one progress write that really is the parent's, so
 `resetProgress()` writes through the gate and becomes the sandbox's new
 baseline.
 
+**Which games are on his screen is the parent's, and it is a FIXED set.**
+Fourteen tiles is more than a 4-year-old can choose from, so the set is short —
+but short and *fixed* together are the point, and an automatic rule breaks the
+second half. "Hide anything past level 5" was the version considered and turned
+down: `levelOf()` is best-minus-two at launch and mastery moves it mid-sitting,
+so one good block would be the difference between a game being on his screen
+and not, and a game could vanish while he was playing it. It would also take
+away the games he is BEST at, which are the ones he likes — an app that removes
+a game as the reward for mastering it. And the list would shrink toward nothing
+but Mix as he improved, which is the opposite of the point.
+
+So it runs off the Settings switches that already existed, and switched off now
+means **gone from his screen** rather than greyed: a grey tile is still a thing
+to press that then does nothing, which for someone who can't read why is worse
+than no tile. It stays visible and greyed in parent mode, so whoever set it can
+see what they turned off. Cells are hidden by CSS, exactly like the level
+strips, so flipping a switch never rebuilds a grid he has learned — and a
+section or date heading carries the same `off` class its cards do, or it would
+stand over an empty space. Mix is always BUILT and hidden by that same rule:
+built conditionally it could only be right at boot, and a parent switching
+games off until one was left would leave a mix of one, which is that game
+wearing a stranger's name. The Settings group counts what the switches add up
+to, because that is the only place a parent can see what he will be handed.
+
 **The escalation is the same in every game, and that is checked in one place.**
 CLAUDE.md has always stated it once for all of them — wrong options dim after
 `S.dimAfter`, **the right one is highlighted** after `S.showAfter` — and
